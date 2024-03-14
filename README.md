@@ -3,5 +3,5 @@ Proyecto en Python que extraerá texto de los posts de un perfil de Instagram ca
 
 Librerías utilizadas para el proyecto:
 - boto3 = `pip install boto3`
-- instascrape = `pip install instascrape`
+- instascrape = `pip install insta-scrape`
 - pysentimiento = `pip install pysentimiento` 
