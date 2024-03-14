@@ -1,14 +1,31 @@
-import boto3
-from datetime import datetime, timedelta
-from instascrape import Profile
-from pysentimiento import SentimentAnalysis
+import schedule
+import time
+from instascrape import *
+from pysentimiento import sentiment
 
-def lambda_handler(event, context):
-    return results
+def lambda_handler():
+    # Obtener el perfil de Instagram
+    profile = Profile('https://www.instagram.com/confesiones___javeriana/')
+    profile.scrape()
+    
+    # Extraer texto de los posts
+    posts_text = [post['text'] for post in profile.get_posts()]
+    
+    # Realizar análisis de sentimientos
+    sentiment_analyzer = sentiment()
+    results = sentiment_analyzer.analyze(posts_text)
+    
+    # Retornar los resultados (o hacer algo con ellos)
+    print(results)
+    
 
-def schedule_lambda():
-    print("Lambda exitoso")
+# Programar la ejecución de la función lambda_handler cada 24 horas
+schedule.every(20).seconds.do(lambda_handler)
 
+# Ejecutar el bucle de planificación
+while True:
+    schedule.run_pending()
+    time.sleep(1)
 
 
 """
