@@ -1,31 +1,50 @@
 import schedule
 import time
-from instascrape import *
-from pysentimiento import sentiment
+from apify_client import ApifyClient
+from pysentimiento import create_analyzer
+import sys
+#Permite al sistema imprimir caracteres especiales
+sys.stdout.reconfigure(encoding='utf-8')
 
-def lambda_handler():
-    # Obtener el perfil de Instagram
-    profile = Profile('https://www.instagram.com/confesiones___javeriana/')
-    profile.scrape()
-    
-    # Extraer texto de los posts
-    posts_text = [post['text'] for post in profile.get_posts()]
-    
-    # Realizar análisis de sentimientos
-    sentiment_analyzer = sentiment()
-    results = sentiment_analyzer.analyze(posts_text)
-    
-    # Retornar los resultados (o hacer algo con ellos)
+def lambda_scrapper(username):
+
+    # Inicializa el cliente de apify con el token de autenticación
+    client = ApifyClient("<TOKEN APIFY>")
+
+    # Input para realizar la llamada al Actor
+    run_input = {
+        "username": [username],
+        "resultsLimit": 10,
+    }
+
+    # Corre el actor que extraerá la información
+    run = client.actor("apify/instagram-post-scraper").call(run_input=run_input)
+
+    # Extrae y guarda la información en una lista
+    captions = []
+    for item in client.dataset(run["defaultDatasetId"]).iterate_items():
+        captions.append(item.get('caption'))
+
+    #Se declara el analizador de sentimiento
+    analyzer = create_analyzer(task="sentiment", lang="es")
+
+    #Realiza análisis de sentimiento
+    results = analyzer.predict(captions)
+
     print(results)
-    
 
-# Programar la ejecución de la función lambda_handler cada 24 horas
-schedule.every(20).seconds.do(lambda_handler)
+    return captions, results
+
+
+"""# Programar la ejecución de la función lambda_handler cada 24 horas
+schedule.every(24).hours.do(lambda_scrapper("unijaveriana"))
 
 # Ejecutar el bucle de planificación
 while True:
     schedule.run_pending()
-    time.sleep(1)
+    time.sleep(1)"""
+
+lambda_scrapper("unijaveriana")
 
 
 """
