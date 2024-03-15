@@ -4,7 +4,8 @@ Proyecto en Python que extraerá texto de los posts de un perfil de Instagram ca
 Librerías utilizadas para el proyecto:
 - schedule = `pip install schedule`
 - time = `pip install time`
-- instascrape = `pip install insta-scrape`
+- apify = `pip install apify-client`
 - pysentimiento = `pip install pysentimiento` 
 - wandb (Dependencia de pysentimiento) = `pip install wandb`
+
 
