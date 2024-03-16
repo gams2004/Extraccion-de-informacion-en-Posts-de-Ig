@@ -34,3 +34,15 @@ Captions:
 ```
 'Captions': ['#LaJaverianaTeCuenta que estamos comprometidos con el futuro de nuestros estudiantes, por eso te contamos las diferentes alternativas de financiación y convenios que tenemos para ti.\n\n✅ Corto, mediano y largo plazo\n✅ Líneas de crédito con el ICETEX\n✅ Convenios\n✅ Entre otros\n\nConoce más en el link de nuestra biografía.', '#PostalJaveriana 💛💙 ¡Conmemoramos el #DíaDeLaMujer en nuestro campus! Te compartimos algunas fotografías del #8M en la Javeriana, un día en el que el diálogo, el reconocimiento y el acompañamiento fueron protagonistas.\n\nCada imagen refleja el amor de las #MujeresJaverianas 💜', 'Te compartimos las 3️⃣ #NoticiasJaverianas más importantes de esta semana, contadas en un minuto por nuestros profesores, estudiantes y administrativos.\n\nSi quieres conocer todas las noticias, visita: www.javeriana.edu.co', '#LaJaverianaTeCuenta cuáles son las becas que te ofrecemos en la Universidad, para neojaverianos y para estudiantes de pregado y de posgrado, además de créditos condonables de apoyo a especializaciones, maestrías y doctorados. \n\nTe invitamos a conocer cada una de estas opciones en el siguiente video y en el link de nuestra\xa0biografía.', '#LaJaverianaTeCuenta | Estos son algunos de los descuentos que ofrecemos para la financiación de tu matrícula:\n \n✅ Egresado Javeriano \n✅ Hermanos Javerianos\n✅ Familias Javerianas\n✅ Hijos de empleados\n✅ Entre otros\n\nConoce más información en el link de nuestra biografía.', '#RegálemeUnMinuto para conocer la conexión que existe entre el calentamiento global y la calidad del sueño, contada por Alain Riveros-Rivera, profesor de @medicina.puj, en el marco del #DíaMundialDelSueño, que se celebra este viernes 15 de marzo.'...
 ```
+
+## License
+
+Este trabajo está licenciado bajo: [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License][cc-by-nc-sa].
+
+[![CC BY-NC-SA 4.0][cc-by-nc-sa-image]][cc-by-nc-sa]
+
+[cc-by-nc-sa]: http://creativecommons.org/licenses/by-nc-sa/4.0/
+[cc-by-nc-sa-image]: https://licensebuttons.net/l/by-nc-sa/4.0/88x31.png
+[cc-by-nc-sa-shield]: https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg
+
+****
