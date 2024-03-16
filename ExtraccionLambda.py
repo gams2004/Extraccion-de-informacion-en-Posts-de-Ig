@@ -6,45 +6,27 @@ import sys
 #Permite al sistema imprimir caracteres especiales
 sys.stdout.reconfigure(encoding='utf-8')
 
-def lambda_scrapper(username):
-
-    # Inicializa el cliente de apify con el token de autenticación
-    client = ApifyClient("<TOKEN APIFY>")
-
-    # Input para realizar la llamada al Actor
-    run_input = {
-        "username": [username],
-        "resultsLimit": 10,
+#Función lambda que obtiene el sentimiento de los posts de Instagram de un usuario dado
+obtener_sentimientos_instagram = lambda username : {
+    #Se itera por los posts del usuario y se genera el análisis 
+  "analisis": create_analyzer(task="sentiment", lang="es").predict(
+    [item.get('caption') for item in client.dataset(client.actor("apify/instagram-post-scraper").call(run_input={"username": [username],"resultsLimit": 10})["defaultDatasetId"]).iterate_items()]),
+    
+    #Devuelve una lista con las descripciones de los posts
+  "descripciones":[item.get('caption') for item in client.dataset(client.actor("apify/instagram-post-scraper").call(run_input={"username": [username],"resultsLimit": 10})["defaultDatasetId"]).iterate_items()]
     }
 
-    # Corre el actor que extraerá la información
-    run = client.actor("apify/instagram-post-scraper").call(run_input=run_input)
 
-    # Extrae y guarda la información en una lista
-    captions = []
-    for item in client.dataset(run["defaultDatasetId"]).iterate_items():
-        captions.append(item.get('caption'))
+#Declaramos token de Apify
+client = ApifyClient("<TOKEN API>")
 
-    #Se declara el analizador de sentimiento
-    analyzer = create_analyzer(task="sentiment", lang="es")
-
-    #Realiza análisis de sentimiento
-    results = analyzer.predict(captions)
-
-    print(results)
-
-    return captions, results
-
-
-"""# Programar la ejecución de la función lambda_handler cada 24 horas
-schedule.every(24).hours.do(lambda_scrapper("unijaveriana"))
+# Programar la ejecución de la función lambda_handler cada 24 horas
+schedule.every(24).hours.do(obtener_sentimientos_instagram("unijaveriana"))
 
 # Ejecutar el bucle de planificación
 while True:
     schedule.run_pending()
-    time.sleep(1)"""
-
-lambda_scrapper("unijaveriana")
+    time.sleep(1)
 
 
 """
@@ -56,4 +38,19 @@ lambda_scrapper("unijaveriana")
       archivePrefix={arXiv},
       primaryClass={cs.CL}
 }
+"""
+
+
+"""lambda_scrapper = lambda username : (lambda captions, results: (captions, results))
+
+    # Inicializa el cliente de apify con el token de autenticación
+    client = ApifyClient("apify_api_pfpeKhmFpP8zbELUuRdSFmjf6F4fKs4wwUw8")
+
+    # Extrae y guarda la información en una lista
+    captions = []
+    for item in client.dataset(client.actor("apify/instagram-post-scraper").call(run_input={"username": [username],"resultsLimit": 10})["defaultDatasetId"]).iterate_items():
+        captions.append(item.get('caption'))
+
+    #Se declara el analizador de sentimiento
+    create_analyzer(task="sentiment", lang="es").predict(captions)
 """
