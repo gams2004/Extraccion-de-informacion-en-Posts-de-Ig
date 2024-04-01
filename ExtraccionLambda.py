@@ -1,7 +1,6 @@
 """
 @Author: Gabriel Martín
 """
-
 from apify_client import ApifyClient
 from pysentimiento import create_analyzer
 import sys
@@ -9,8 +8,14 @@ from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime
 
+#Permite al sistema imprimir caracteres especiales
+sys.stdout.reconfigure(encoding='utf-8')
+
 #uri de conexión a Mongo (ingresa tu propia uri)
 uri = "<URI>"
+
+#Declaramos token de Apify (Ingresa el token de tu cuenta de Apify)
+client = ApifyClient("<TOKEN APIFY>")
 
 # Crea un nuevo cliente y se contecta al servidor
 client = MongoClient(uri, server_api=ServerApi('1'))
@@ -19,7 +24,7 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 db = client.datosRedesSociales
 
 # Utilizamos la colección "datos"
-coleccion = db["datos"]
+collection = db["Entries"]
 
 # Función para guardar datos en MongoDB desde Python
 def guardar_datos_en_mongo(objeto_json):
@@ -28,33 +33,25 @@ def guardar_datos_en_mongo(objeto_json):
         objeto_json['dateQuery'] = datetime.now()
 
         # Insertar el objeto JSON en la base de datos
-        coleccion.insert_one(objeto_json)
+        collection.insert_one(objeto_json)
         
-        print('Datos guardados correctamente en MongoDB.')
+        return 'Datos guardados correctamente en MongoDB.'
 
     except Exception as e:
-        print('Error al guardar los datos en MongoDB:', e) 
+        return 'Error al guardar los datos en MongoDB:', e 
 
-#Permite al sistema imprimir caracteres especiales
-sys.stdout.reconfigure(encoding='utf-8')
 
 #Función lambda que obtiene el sentimiento de los posts de Instagram de un usuario dado
-obtener_sentimientos_instagram = lambda username : {
-    #Se itera por los posts del usuario y se genera el análisis 
-  "analisis": create_analyzer(task="sentiment", lang="es").predict(
-    [item.get('caption') for item in client.dataset(client.actor("apify/instagram-post-scraper").call(run_input={"username": [username],"resultsLimit": 10})["defaultDatasetId"]).iterate_items()]),
-    
+obtener_datos_instagram = lambda username : {
     #Devuelve una lista con las descripciones de los posts
-  "descripciones":[item.get('caption') for item in client.dataset(client.actor("apify/instagram-post-scraper").call(run_input={"username": [username],"resultsLimit": 10})["defaultDatasetId"]).iterate_items()]
+  "descripciones": guardar_datos_en_mongo(
+      objeto_json={ 
+          "descripciones": client.dataset(client.actor("apify/instagram-post-scraper").call(run_input={"username": [username],"resultsLimit": 10})["defaultDatasetId"])[0].get('caption')
+      })
     }
 
-
-#Declaramos token de Apify (Ingresa el token de tu cuenta de Apify)
-client = ApifyClient("<TOKEN APIFY>")
-
 # Programar la ejecución de la función lambda_handler cada 24 horas
-obtener_sentimientos_instagram("unijaveriana")
-
+obtener_datos_instagram("unijaveriana")
 
 """
 @misc{perez2021pysentimiento,
