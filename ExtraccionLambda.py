@@ -2,11 +2,39 @@
 @Author: Gabriel Martín
 """
 
-import schedule
-import time
 from apify_client import ApifyClient
 from pysentimiento import create_analyzer
 import sys
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+from datetime import datetime
+
+#uri de conexión a Mongo (ingresa tu propia uri)
+uri = "<URI>"
+
+# Crea un nuevo cliente y se contecta al servidor
+client = MongoClient(uri, server_api=ServerApi('1'))
+
+# Se conecta a la base de datos
+db = client.datosRedesSociales
+
+# Utilizamos la colección "datos"
+coleccion = db["datos"]
+
+# Función para guardar datos en MongoDB desde Python
+def guardar_datos_en_mongo(objeto_json):
+    try:
+        # Añadir el atributo dateQuery
+        objeto_json['dateQuery'] = datetime.now()
+
+        # Insertar el objeto JSON en la base de datos
+        coleccion.insert_one(objeto_json)
+        
+        print('Datos guardados correctamente en MongoDB.')
+
+    except Exception as e:
+        print('Error al guardar los datos en MongoDB:', e) 
+
 #Permite al sistema imprimir caracteres especiales
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -21,16 +49,11 @@ obtener_sentimientos_instagram = lambda username : {
     }
 
 
-#Declaramos token de Apify
-client = ApifyClient("<TOKEN API>")
+#Declaramos token de Apify (Ingresa el token de tu cuenta de Apify)
+client = ApifyClient("<TOKEN APIFY>")
 
 # Programar la ejecución de la función lambda_handler cada 24 horas
-schedule.every(24).hours.do(obtener_sentimientos_instagram("unijaveriana"))
-
-# Ejecutar el bucle de planificación
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+obtener_sentimientos_instagram("unijaveriana")
 
 
 """
@@ -42,19 +65,4 @@ while True:
       archivePrefix={arXiv},
       primaryClass={cs.CL}
 }
-"""
-
-
-"""lambda_scrapper = lambda username : (lambda captions, results: (captions, results))
-
-    # Inicializa el cliente de apify con el token de autenticación
-    client = ApifyClient("apify_api_pfpeKhmFpP8zbELUuRdSFmjf6F4fKs4wwUw8")
-
-    # Extrae y guarda la información en una lista
-    captions = []
-    for item in client.dataset(client.actor("apify/instagram-post-scraper").call(run_input={"username": [username],"resultsLimit": 10})["defaultDatasetId"]).iterate_items():
-        captions.append(item.get('caption'))
-
-    #Se declara el analizador de sentimiento
-    create_analyzer(task="sentiment", lang="es").predict(captions)
 """
