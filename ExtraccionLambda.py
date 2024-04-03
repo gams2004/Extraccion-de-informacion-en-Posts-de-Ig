@@ -12,16 +12,16 @@ from datetime import datetime
 sys.stdout.reconfigure(encoding='utf-8')
 
 #uri de conexión a Mongo (ingresa tu propia uri)
-uri = "<URI>"
+uri = "<MONGO URI>"
 
 #Declaramos token de Apify (Ingresa el token de tu cuenta de Apify)
-client = ApifyClient("<TOKEN APIFY>")
+clientA = ApifyClient("<APIFY TOKEN>")
 
 # Crea un nuevo cliente y se contecta al servidor
-client = MongoClient(uri, server_api=ServerApi('1'))
+clientM = MongoClient(uri, server_api=ServerApi('1'))
 
 # Se conecta a la base de datos
-db = client.datosRedesSociales
+db = clientM.datosRedesSociales
 
 # Utilizamos la colección "datos"
 collection = db["Entries"]
@@ -44,14 +44,15 @@ def guardar_datos_en_mongo(objeto_json):
 #Función lambda que obtiene el sentimiento de los posts de Instagram de un usuario dado
 obtener_datos_instagram = lambda username : {
     #Devuelve una lista con las descripciones de los posts
-  "descripciones": guardar_datos_en_mongo(
+  "response": guardar_datos_en_mongo(
       objeto_json={ 
-          "descripciones": client.dataset(client.actor("apify/instagram-post-scraper").call(run_input={"username": [username],"resultsLimit": 10})["defaultDatasetId"])[0].get('caption')
+          "descripciones": next(clientA.dataset(clientA.actor("apify/instagram-post-scraper").call(run_input={"username": [username],"resultsLimit": 10})["defaultDatasetId"]).iterate_items()).get('caption')
       })
     }
 
 # Programar la ejecución de la función lambda_handler cada 24 horas
-obtener_datos_instagram("unijaveriana")
+response = obtener_datos_instagram("unijaveriana")
+print(response)
 
 """
 @misc{perez2021pysentimiento,
