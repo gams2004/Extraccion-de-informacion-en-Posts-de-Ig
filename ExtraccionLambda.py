@@ -2,7 +2,6 @@
 @Author: Gabriel Martín
 """
 from apify_client import ApifyClient
-from pysentimiento import create_analyzer
 import sys
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
@@ -12,16 +11,19 @@ from datetime import datetime
 sys.stdout.reconfigure(encoding='utf-8')
 
 #uri de conexión a Mongo (ingresa tu propia uri)
-uri = "<MONGO URI>"
+mongoUri = "mongodb+srv://gabriel:hola123@datosigfb.59p3px5.mongodb.net/?retryWrites=true&w=majority&appName=DatosIgFb"
 
-#Declaramos token de Apify (Ingresa el token de tu cuenta de Apify)
-clientA = ApifyClient("<APIFY TOKEN>")
+#Apify token (Ingresa el token de tu cuenta de Apify)
+apifyToken = "apify_api_pfpeKhmFpP8zbELUuRdSFmjf6F4fKs4wwUw8"
+
+#Declaramos token de Apify 
+clientApify = ApifyClient(apifyToken)
 
 # Crea un nuevo cliente y se contecta al servidor
-clientM = MongoClient(uri, server_api=ServerApi('1'))
+clientMongo = MongoClient(mongoUri, server_api=ServerApi('1'))
 
 # Se conecta a la base de datos
-db = clientM.datosRedesSociales
+db = clientMongo.datosRedesSociales
 
 # Utilizamos la colección "datos"
 collection = db["Entries"]
@@ -41,18 +43,31 @@ def guardar_datos_en_mongo(objeto_json):
         return 'Error al guardar los datos en MongoDB:', e 
 
 
-#Función lambda que obtiene el sentimiento de los posts de Instagram de un usuario dado
-obtener_datos_instagram = lambda username : {
-    #Devuelve una lista con las descripciones de los posts
-  "response": guardar_datos_en_mongo(
-      objeto_json={ 
-          "descripciones": next(clientA.dataset(clientA.actor("apify/instagram-post-scraper").call(run_input={"username": [username],"resultsLimit": 10})["defaultDatasetId"]).iterate_items()).get('caption')
-      })
+#Función lambda que extrae la información de un usuario de Instagram 
+def lambda_handler(event, context): 
+
+    username = event.get("username")
+
+    run_input = {
+        "username": [username],
+        "resultsLimit": 10,
     }
 
-# Programar la ejecución de la función lambda_handler cada 24 horas
-response = obtener_datos_instagram("unijaveriana")
-print(response)
+    # Corre el actor que extraerá la información
+    run = clientApify.actor("apify/instagram-post-scraper").call(run_input=run_input)
+
+    # Extrae y guarda la información en una lista
+    captions = []
+    for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+        captions.append(item.get('caption'))
+
+    # Convierte la lista en un objeto JSON
+    objeto_json = {
+        "username": username,
+        "captions": captions
+    }
+
+    return {"response": guardar_datos_en_mongo(objeto_json)}
 
 """
 @misc{perez2021pysentimiento,
