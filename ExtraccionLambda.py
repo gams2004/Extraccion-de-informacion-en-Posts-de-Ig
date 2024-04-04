@@ -11,10 +11,10 @@ from datetime import datetime
 sys.stdout.reconfigure(encoding='utf-8')
 
 #uri de conexión a Mongo (ingresa tu propia uri)
-mongoUri = "mongodb+srv://gabriel:hola123@datosigfb.59p3px5.mongodb.net/?retryWrites=true&w=majority&appName=DatosIgFb"
+mongoUri = "<URI>"
 
 #Apify token (Ingresa el token de tu cuenta de Apify)
-apifyToken = "apify_api_pfpeKhmFpP8zbELUuRdSFmjf6F4fKs4wwUw8"
+apifyToken = "<TOKEN>"
 
 #Declaramos token de Apify 
 clientApify = ApifyClient(apifyToken)
