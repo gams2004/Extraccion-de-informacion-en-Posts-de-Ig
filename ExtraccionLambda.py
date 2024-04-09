@@ -47,18 +47,15 @@ def guardar_datos_en_mongo(objeto_json):
 def lambda_handler(event, context): 
 
     username = event.get("username")
+    #Formato fecha = YYYY-MM-DD
+    date_until_search = event.get("date")
 
     run_input = {
     "startUrls": [
-        "https://www.instagram.com/taylorswift/",
-        "https://www.instagram.com/p/BHF4NdhhOmc",
-        "https://www.instagram.com/p/CmUv48DLvxd",
-        "https://www.instagram.com/explore/tags/travel",
-        "https://www.instagram.com/explore/locations/213131048/berlin-germany/",
-        "https://www.instagram.com/reels/audio/271328201351336/",
+        "https://www.instagram.com/" + username + "/",
     ],
-    "maxItems": 1000,
-    "until": "2023-12-31",
+    "maxItems": 10,
+    "until": date_until_search,
     "customMapFunction": "(object) => { return {...object} }",
 }
 
