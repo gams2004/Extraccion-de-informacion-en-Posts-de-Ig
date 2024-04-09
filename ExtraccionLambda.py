@@ -49,12 +49,21 @@ def lambda_handler(event, context):
     username = event.get("username")
 
     run_input = {
-        "username": [username],
-        "resultsLimit": 10,
-    }
+    "startUrls": [
+        "https://www.instagram.com/taylorswift/",
+        "https://www.instagram.com/p/BHF4NdhhOmc",
+        "https://www.instagram.com/p/CmUv48DLvxd",
+        "https://www.instagram.com/explore/tags/travel",
+        "https://www.instagram.com/explore/locations/213131048/berlin-germany/",
+        "https://www.instagram.com/reels/audio/271328201351336/",
+    ],
+    "maxItems": 1000,
+    "until": "2023-12-31",
+    "customMapFunction": "(object) => { return {...object} }",
+}
 
     # Corre el actor que extraerá la información
-    run = clientApify.actor("apify/instagram-post-scraper").call(run_input=run_input)
+    run = clientApify.actor("culc72xb7MP3EbaeX").call(run_input=run_input)
 
     # Extrae y guarda la información en una lista
     captions = []
