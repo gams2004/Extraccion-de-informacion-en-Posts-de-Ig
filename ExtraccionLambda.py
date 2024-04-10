@@ -11,10 +11,10 @@ from datetime import datetime
 sys.stdout.reconfigure(encoding='utf-8')
 
 #uri de conexión a Mongo (ingresa tu propia uri)
-mongoUri = "mongodb+srv://gabriel:hola123@datosigfb.59p3px5.mongodb.net/?retryWrites=true&w=majority&appName=DatosIgFb"
+mongoUri = "<URI>"
 
 #Apify token (Ingresa el token de tu cuenta de Apify)
-apifyToken = "apify_api_pfpeKhmFpP8zbELUuRdSFmjf6F4fKs4wwUw8"
+apifyToken = "<TOKEN>"
 
 #Declaramos token de Apify 
 clientApify = ApifyClient(apifyToken)
@@ -47,14 +47,20 @@ def guardar_datos_en_mongo(objeto_json):
 def lambda_handler(event, context): 
 
     username = event.get("username")
+    #Formato fecha = YYYY-MM-DD
+    date_until_search = event.get("date")
 
     run_input = {
-        "username": [username],
-        "resultsLimit": 10,
-    }
+    "startUrls": [
+        "https://www.instagram.com/" + username + "/",
+    ],
+    "maxItems": 10,
+    "until": date_until_search,
+    "customMapFunction": "(object) => { return {...object} }",
+}
 
     # Corre el actor que extraerá la información
-    run = clientApify.actor("apify/instagram-post-scraper").call(run_input=run_input)
+    run = clientApify.actor("culc72xb7MP3EbaeX").call(run_input=run_input)
 
     # Extrae y guarda la información en una lista
     captions = []
