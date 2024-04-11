@@ -90,6 +90,14 @@ def lambda_handler(event, context):
 
     return result
 
+event={
+    "username":"gustavopetrourrego",
+    "date_until_search":"2021-05-06",
+    "max_posts": 10
+}
+
+lambda_handler(event, None)
+
 """
 @misc{perez2021pysentimiento,
       title={pysentimiento: A Python Toolkit for Opinion Mining and Social NLP tasks}, 
