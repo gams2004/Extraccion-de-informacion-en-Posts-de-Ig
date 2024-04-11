@@ -46,34 +46,49 @@ def guardar_datos_en_mongo(objeto_json):
 #Función lambda que extrae la información de un usuario de Instagram 
 def lambda_handler(event, context): 
 
+    # Recogemos el nombre del usuario de instagram a buscar de event[user]
     username = event.get("username")
-    #Formato fecha = YYYY-MM-DD
+
+    # Formato fecha = YYYY-MM-DD
     date_until_search = event.get("date")
 
+    # Obtenemos el número máximo de posts a buscar
+    max_posts = event.get("max_posts")
+    
+    if not username:
+        return {"response": "No se proporciona nombre de usuario"}
+    
+    if not date_until_search:
+        date_until_search = "2023-12-24"
+    if not max_posts:
+        max_posts=10
+
+
     run_input = {
-    "startUrls": [
-        "https://www.instagram.com/" + username + "/",
-    ],
-    "maxItems": 10,
-    "until": date_until_search,
-    "customMapFunction": "(object) => { return {...object} }",
-}
-
-    # Corre el actor que extraerá la información
-    run = clientApify.actor("culc72xb7MP3EbaeX").call(run_input=run_input)
-
-    # Extrae y guarda la información en una lista
-    captions = []
-    for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
-        captions.append(item.get('caption'))
-
-    # Convierte la lista en un objeto JSON
-    objeto_json = {
-        "username": username,
-        "captions": captions
+        "addParentData": False,
+        "directUrls": [
+        "https://www.instagram.com/"+username+"/",
+        ],
+        "enhanceUserSearchWithFacebookPage": False,
+        "isUserTaggedFeedURL": False,
+        "onlyPostsNewerThan": date_until_search,
+        "resultsLimit": max_posts,
+        "resultsType": "posts"
     }
 
-    return {"response": guardar_datos_en_mongo(objeto_json)}
+    # Corre el actor que extraerá la información
+    run = clientApify.actor("shu8hvrXbJbY3Eb9W").call(run_input=run_input)
+
+    for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+        # Convierte los datos en un objeto JSON
+        objeto_json = {
+            "username": username,
+            "captions": item.get("caption"),
+        }
+
+        result = {"response": guardar_datos_en_mongo(objeto_json)}
+
+    return result
 
 """
 @misc{perez2021pysentimiento,
