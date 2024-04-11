@@ -14,7 +14,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 mongoUri = "<URI>"
 
 #Apify token (Ingresa el token de tu cuenta de Apify)
-apifyToken = "<TOKEN>"
+apifyToken = "<API>"
 
 #Declaramos token de Apify 
 clientApify = ApifyClient(apifyToken)
@@ -106,6 +106,86 @@ def lambda_handler_ig(event, context):
                 "mediaURL":mediaURL,
                 "likes":item.get("likesCount"),
                 "comments":item.get("commentsCount")
+            },
+            "_parentEntryID":item.get("ownerId"),
+            "hashtags": item.get('hashtags')
+        }
+        datos.append(objeto_json)
+    
+    result = {"response": guardar_datos_en_mongo(datos)}
+    return result
+
+#Función lambda que extrae la información de un usuario de Instagram 
+def lambda_handler_fb(event, context): 
+
+    # Recogemos el nombre del usuario de instagram a buscar de event[user]
+    username = event.get("username")
+
+    # Formato fecha = YYYY-MM-DD
+    date_until_search = event.get("date_until_search")
+
+    # Obtenemos el número máximo de posts a buscar
+    max_posts = event.get("max_posts")
+    
+    if not username:
+        return {"response": "No se proporciona nombre de usuario"}
+    
+    if not date_until_search:
+        date_until_search = "2023-12-24"
+    if not max_posts:
+        max_posts=10
+
+
+    run_input = {
+        "afterTime": date_until_search,
+        "max_results": max_posts,
+        "profile_urls": [
+            {
+                "url": "https://www.facebook.com/"+username+"/"
+            }
+        ]
+    }
+
+    # Corre el actor que extraerá la información
+    run = clientApify.actor("iKRDqb590bAYWxy4q").call(run_input=run_input)
+
+    datos = []
+    for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+        tipo = item.get("type")
+
+        if tipo == "Video":
+            mediaURL = [item.get("videoUrl")]
+
+        if tipo == "Sidecar":
+            mediaURL = item.get("images")
+
+        if tipo == "Image":
+            mediaURL = [item.get("displayUrl")]
+
+        # Convierte los datos en un objeto JSON
+        objeto_json = {
+            "type":"post de Facebook",
+            "socialNetwork": "facebook",
+            "content": item.get("caption"),
+            "usernameSocialNetwork": username,
+            "dateCreated": item.get("timestamp"),
+            "dateQuery":datetime.now(),
+            "location": item.get("locationName"),
+            "usersMentioned": item.get("mentions"),
+            "properties":{
+                "postId":item.get("id"),
+                "postURL":item.get("url"),
+                "mediaURL":mediaURL,
+                "likes":item.get("likesCount"),
+                "comments":item.get("commentsCount"),
+                "reactions":{
+                    "like":,
+                    "love":,
+                    "haha":,
+                    "wow":,
+                    "sad":,
+                    "angry":
+                }
             },
             "_parentEntryID":item.get("ownerId"),
             "hashtags": item.get('hashtags')
