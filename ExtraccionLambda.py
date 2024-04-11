@@ -14,7 +14,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 mongoUri = "<URI>"
 
 #Apify token (Ingresa el token de tu cuenta de Apify)
-apifyToken = "<API>"
+apifyToken = "<TOKEN>"
 
 #Declaramos token de Apify 
 clientApify = ApifyClient(apifyToken)
@@ -28,13 +28,10 @@ db = clientMongo.datosRedesSociales
 # Utilizamos la colección "datos"
 collection = db["Entries"]
 
-# Función para guardar datos en MongoDB desde Python
+# Función para guardar datos en MongoDB desde Python, recibe una lista de objetos json
 def guardar_datos_en_mongo(datos):
     try:
         for obj in datos:
-            # Añadir el atributo dateQuery
-            obj['dateQuery'] = datetime.now()
-
             # Insertar el objeto JSON en la base de datos
             collection.insert_one(obj)
         
@@ -45,7 +42,7 @@ def guardar_datos_en_mongo(datos):
 
 
 #Función lambda que extrae la información de un usuario de Instagram 
-def lambda_handler(event, context): 
+def lambda_handler_ig(event, context): 
 
     # Recogemos el nombre del usuario de instagram a buscar de event[user]
     username = event.get("username")
@@ -82,10 +79,36 @@ def lambda_handler(event, context):
 
     datos = []
     for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+        tipo = item.get("type")
+
+        if tipo == "Video":
+            mediaURL = [item.get("videoUrl")]
+
+        if tipo == "Sidecar":
+            mediaURL = item.get("images")
+
+        if tipo == "Image":
+            mediaURL = [item.get("displayUrl")]
+
         # Convierte los datos en un objeto JSON
         objeto_json = {
-            "username": username,
-            "caption": item.get("caption"),
+            "type":"post de Instagram",
+            "socialNetwork": "instagram",
+            "content": item.get("caption"),
+            "usernameSocialNetwork": username,
+            "dateCreated": item.get("timestamp"),
+            "dateQuery":datetime.now(),
+            "location": item.get("locationName"),
+            "usersMentioned": item.get("mentions"),
+            "properties":{
+                "postId":item.get("id"),
+                "postURL":item.get("url"),
+                "mediaURL":mediaURL,
+                "likes":item.get("likesCount"),
+                "comments":item.get("commentsCount")
+            },
+            "_parentEntryID":item.get("ownerId"),
+            "hashtags": item.get('hashtags')
         }
         datos.append(objeto_json)
     
@@ -98,4 +121,4 @@ event={
     "max_posts": 3
 }
 
-print(lambda_handler(event, None))
+print(lambda_handler_ig(event, None))
