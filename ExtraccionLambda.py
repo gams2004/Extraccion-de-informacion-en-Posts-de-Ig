@@ -14,7 +14,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 mongoUri = "<URI>"
 
 #Apify token (Ingresa el token de tu cuenta de Apify)
-apifyToken = "<TOKEN>"
+apifyToken = "<API>"
 
 #Declaramos token de Apify 
 clientApify = ApifyClient(apifyToken)
@@ -29,13 +29,14 @@ db = clientMongo.datosRedesSociales
 collection = db["Entries"]
 
 # Función para guardar datos en MongoDB desde Python
-def guardar_datos_en_mongo(objeto_json):
+def guardar_datos_en_mongo(datos):
     try:
-        # Añadir el atributo dateQuery
-        objeto_json['dateQuery'] = datetime.now()
+        for obj in datos:
+            # Añadir el atributo dateQuery
+            obj['dateQuery'] = datetime.now()
 
-        # Insertar el objeto JSON en la base de datos
-        collection.insert_one(objeto_json)
+            # Insertar el objeto JSON en la base de datos
+            collection.insert_one(obj)
         
         return 'Datos guardados correctamente en MongoDB.'
 
@@ -50,7 +51,7 @@ def lambda_handler(event, context):
     username = event.get("username")
 
     # Formato fecha = YYYY-MM-DD
-    date_until_search = event.get("date")
+    date_until_search = event.get("date_until_search")
 
     # Obtenemos el número máximo de posts a buscar
     max_posts = event.get("max_posts")
@@ -79,32 +80,22 @@ def lambda_handler(event, context):
     # Corre el actor que extraerá la información
     run = clientApify.actor("shu8hvrXbJbY3Eb9W").call(run_input=run_input)
 
+    datos = []
     for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
         # Convierte los datos en un objeto JSON
         objeto_json = {
             "username": username,
-            "captions": item.get("caption"),
+            "caption": item.get("caption"),
         }
-
-        result = {"response": guardar_datos_en_mongo(objeto_json)}
-
+        datos.append(objeto_json)
+    
+    result = {"response": guardar_datos_en_mongo(datos)}
     return result
 
 event={
     "username":"gustavopetrourrego",
-    "date_until_search":"2021-05-06",
-    "max_posts": 10
+    "date_until_search":"2023-12-24",
+    "max_posts": 3
 }
 
-lambda_handler(event, None)
-
-"""
-@misc{perez2021pysentimiento,
-      title={pysentimiento: A Python Toolkit for Opinion Mining and Social NLP tasks}, 
-      author={Juan Manuel Pérez and Mariela Rajngewerc and Juan Carlos Giudici and Damián A. Furman and Franco Luque and Laura Alonso Alemany and María Vanina Martínez},
-      year={2023},
-      eprint={2106.09462},a
-      archivePrefix={arXiv},
-      primaryClass={cs.CL}
-}
-"""
+print(lambda_handler(event, None))
