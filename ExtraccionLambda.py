@@ -168,24 +168,18 @@ def lambda_handler_fb(event, context):
             "socialNetwork": "facebook",
             "content": item.get("caption"),
             "usernameSocialNetwork": username,
-            "dateCreated": item.get("timestamp"),
+            "dateCreated": item.get("post_date"),
             "dateQuery":datetime.now(),
             "location": item.get("locationName"),
             "usersMentioned": item.get("mentions"),
             "properties":{
-                "postId":item.get("id"),
+                "postId":item.get("post_id"),
                 "postURL":item.get("url"),
                 "mediaURL":mediaURL,
                 "likes":item.get("likesCount"),
                 "comments":item.get("commentsCount"),
-                "reactions":{
-                    "like":,
-                    "love":,
-                    "haha":,
-                    "wow":,
-                    "sad":,
-                    "angry":
-                }
+                "reactions":item.get("total_reactions"),
+                "shares":item.get("share_count"),
             },
             "_parentEntryID":item.get("ownerId"),
             "hashtags": item.get('hashtags')
