@@ -192,7 +192,7 @@ def lambda_handler_fb(event, context):
                 "views":item.get("video_view_count"),
             },
             "_parentEntryID":item.get("facebook_id"),
-            "hashtags": datos.get('hashtags')
+            "hashtags": datos.get("hashtags")
         }
         datos.append(objeto_json)
     
