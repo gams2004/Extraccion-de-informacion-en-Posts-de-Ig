@@ -6,6 +6,7 @@ import sys
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime
+import re
 
 #Permite al sistema imprimir caracteres especiales
 sys.stdout.reconfigure(encoding='utf-8')
@@ -115,10 +116,28 @@ def lambda_handler_ig(event, context):
     result = {"response": guardar_datos_en_mongo(datos)}
     return result
 
-#Función lambda que extrae la información de un usuario de Facebook
+#Función que extrae los hashtags y menciones de un texto    
+def extract_hashtags_mentions(text):
+    # Define los patrones de las expresiones regulares para hashtags y menciones
+    hashtag_pattern = r'#(\w+)'  # Hashtags: palabras que comienzan con '#'
+    mention_pattern = r'@(\w+)'  # Menciones: palabras que comienzan con '@'
+    
+    # Encuentra todos los hashtags y menciones en el texto
+    hashtags = re.findall(hashtag_pattern, text)
+    mentions = re.findall(mention_pattern, text)
+    
+    # Devuelve un diccionario con los hashtags y menciones
+    result = {
+        "hashtags": hashtags,
+        "mentions": mentions
+    }
+    
+    return result
+
+#Función lambda que extrae la información de un usuario de Instagram 
 def lambda_handler_fb(event, context): 
 
-    # Recogemos el nombre del usuario de facebook a buscar de event[user]
+    # Recogemos el nombre del usuario de instagram a buscar de event[user]
     username = event.get("username")
 
     # Formato fecha = YYYY-MM-DD
@@ -151,6 +170,9 @@ def lambda_handler_fb(event, context):
 
     datos = []
     for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+        # Extraemos las menciones y hashtags del caption
+        datos = extract_hashtags_mentions(item.get("caption"))
+
         # Convierte los datos en un objeto JSON
         objeto_json = {
             "type":"post de Facebook",
@@ -159,17 +181,18 @@ def lambda_handler_fb(event, context):
             "usernameSocialNetwork": username,
             "dateCreated": item.get("post_date"),
             "dateQuery":datetime.now(),
+            "usersMentioned": datos.get("mentions"),
             "properties":{
                 "postId":item.get("post_id"),
                 "postURL":item.get("post_url"),
                 "mediaURL":item.get("media_url"),
-                "likes":item.get("likesCount"),
                 "comments":item.get("total_comment_count"),
                 "reactions":item.get("total_reactions"),
                 "shares":item.get("share_count"),
+                "views":item.get("video_view_count"),
             },
-            "_parentEntryID":item.get("ownerId"),
-            #"hashtags": item.get('hashtags')
+            "_parentEntryID":item.get("facebook_id"),
+            "hashtags": datos.get('hashtags')
         }
         datos.append(objeto_json)
     
@@ -183,3 +206,5 @@ event={
 }
 
 print(lambda_handler_ig(event, None))
+print(lambda_handler_fb(event, None))
+
