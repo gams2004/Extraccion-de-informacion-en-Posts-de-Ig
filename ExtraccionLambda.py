@@ -6,16 +6,17 @@ import sys
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 from datetime import datetime
+import json
 import re
 
 #Permite al sistema imprimir caracteres especiales
 sys.stdout.reconfigure(encoding='utf-8')
 
 #uri de conexión a Mongo (ingresa tu propia uri)
-mongoUri = "<URI>"
+mongoUri = "mongodb+srv://gams:hola123@datosredes.mhiioyc.mongodb.net/"
 
 #Apify token (Ingresa el token de tu cuenta de Apify)
-apifyToken = "<API>"
+apifyToken = "apify_api_bO53aIisw2V2WmXOdmh6gHQQRdgVoa3MNMpP"
 
 #Declaramos token de Apify 
 clientApify = ApifyClient(apifyToken)
@@ -156,9 +157,9 @@ def lambda_handler_fb(event, context):
 
 
     run_input = {
-        "afterTime": date_until_search,
-        "max_results": max_posts,
-        "profile_urls": [
+        "onlyPostsNewerThan": date_until_search,
+        "resultsLimit": max_posts,
+        "startUrls": [
             {
                 "url": "https://www.facebook.com/"+username+"/"
             }
@@ -166,33 +167,40 @@ def lambda_handler_fb(event, context):
     }
 
     # Corre el actor que extraerá la información
-    run = clientApify.actor("iKRDqb590bAYWxy4q").call(run_input=run_input)
+    run = clientApify.actor("KoJrdxJCTtpon81KY").call(run_input=run_input)
 
     datos = []
     for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
         # Extraemos las menciones y hashtags del caption
-        datos = extract_hashtags_mentions(item.get("caption"))
+        datos_e = extract_hashtags_mentions(item.get("text"))
+
+        #Comprobar que el post tiene imágenes o videos
+        media_data = item.get("media")
+        if media_data:
+            uri_value = media_data[0]["thumbnailImage"]["uri"]
+        else:
+            uri_value = "Sin contenido"
 
         # Convierte los datos en un objeto JSON
         objeto_json = {
             "type":"post de Facebook",
             "socialNetwork": "facebook",
-            "content": item.get("caption"),
+            "content": item.get("text"),
             "usernameSocialNetwork": username,
-            "dateCreated": item.get("post_date"),
+            "dateCreated": item.get("time"),
             "dateQuery":datetime.now(),
-            "usersMentioned": datos.get("mentions"),
+            "usersMentioned": datos_e.get("mentions"),
             "properties":{
-                "postId":item.get("post_id"),
-                "postURL":item.get("post_url"),
-                "mediaURL":item.get("media_url"),
-                "comments":item.get("total_comment_count"),
-                "reactions":item.get("total_reactions"),
-                "shares":item.get("share_count"),
-                "views":item.get("video_view_count"),
+                "postId":item.get("postId"),
+                "postURL":item.get("url"),
+                "mediaURL":uri_value,
+                "comments":item.get("comments"),
+                "reactions":item.get("likes"),
+                "shares":item.get("shares"),
+                "views":item.get("viewsCount"),
             },
-            "_parentEntryID":item.get("facebook_id"),
-            "hashtags": datos.get("hashtags")
+            "_parentEntryID":item.get("user").get("id"),
+            "hashtags": datos_e.get("hashtags")
         }
         datos.append(objeto_json)
     
@@ -205,6 +213,6 @@ event={
     "max_posts": 3
 }
 
-print(lambda_handler_ig(event, None))
+#print(lambda_handler_ig(event, None))
 print(lambda_handler_fb(event, None))
 
