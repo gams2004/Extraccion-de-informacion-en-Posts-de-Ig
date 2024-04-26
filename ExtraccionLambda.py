@@ -42,6 +42,72 @@ def guardar_datos_en_mongo(datos):
     except Exception as e:
         return 'Error al guardar los datos en MongoDB:', e 
 
+#Función que extrae los hashtags y menciones de un texto    
+def extract_hashtags_mentions(text):
+    # Define los patrones de las expresiones regulares para hashtags y menciones
+    hashtag_pattern = r'#(\w+)'  # Hashtags: palabras que comienzan con '#'
+    mention_pattern = r'@(\w+)'  # Menciones: palabras que comienzan con '@'
+    
+    # Encuentra todos los hashtags y menciones en el texto
+    hashtags = re.findall(hashtag_pattern, text)
+    mentions = re.findall(mention_pattern, text)
+    
+    # Devuelve un diccionario con los hashtags y menciones
+    result = {
+        "hashtags": hashtags,
+        "mentions": mentions
+    }
+    
+    return result
+    
+#Función que extrae los primeros 50 comentarios de un post dado
+def extraccion_comentarios_ig(padre):
+    run_input={
+        "addParentData": False,
+        "directUrls": [
+            padre.get("url")
+        ],
+        "enhanceUserSearchWithFacebookPage": False,
+        "isUserTaggedFeedURL": False,
+        "resultsLimit": 50,
+        "resultsType": "comments",
+        "searchType": "hashtag"
+    }
+
+    # Run the Actor and wait for it to finish
+    run = clientApify.actor("shu8hvrXbJbY3Eb9W").call(run_input=run_input)
+
+    #Lista donde se guardarán los comentarios
+    datos = []
+
+    # Fetch and print Actor results from the run's dataset (if there are any)
+    for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+        datos_e = extract_hashtags_mentions(item.get("text"))
+        # Convierte los datos en un objeto JSON
+        objeto_json = {
+            "type":"comentario de Instagram",
+            "socialNetwork": "instagram",
+            "content": item.get("text"),
+            "usernameSocialNetwork": item.get("ownerUsername"),
+            "dateCreated": item.get("timestamp"),
+            "dateQuery":datetime.now(),
+            "location": "null",
+            "usersMentioned": datos_e.get("mentions"),
+            "properties":{
+                "postId":item.get("id"),
+                "postURL":"No contiene",
+                "mediaURL":"No contiene",
+                "likes":item.get("likesCount"),
+                "comments":"No aplica"
+            },
+            "_parentEntryID":padre.get("id"),
+            "hashtags": datos_e.get('hashtags')
+        }
+        datos.append(objeto_json)
+    
+    result = {"response": guardar_datos_en_mongo(datos)}
+    return result
+
 
 #Función lambda que extrae la información de un usuario de Instagram 
 def lambda_handler_ig(event, context): 
@@ -117,22 +183,51 @@ def lambda_handler_ig(event, context):
     result = {"response": guardar_datos_en_mongo(datos)}
     return result
 
-#Función que extrae los hashtags y menciones de un texto    
-def extract_hashtags_mentions(text):
-    # Define los patrones de las expresiones regulares para hashtags y menciones
-    hashtag_pattern = r'#(\w+)'  # Hashtags: palabras que comienzan con '#'
-    mention_pattern = r'@(\w+)'  # Menciones: palabras que comienzan con '@'
-    
-    # Encuentra todos los hashtags y menciones en el texto
-    hashtags = re.findall(hashtag_pattern, text)
-    mentions = re.findall(mention_pattern, text)
-    
-    # Devuelve un diccionario con los hashtags y menciones
-    result = {
-        "hashtags": hashtags,
-        "mentions": mentions
+#Función que extrae los primeros 50 comentarios de un post dado
+def extraccion_comentarios_fb(padre):
+    run_input={
+        "includeNestedComments": False,
+        "resultsLimit": 50,
+        "startUrls": [
+            {
+            "url": padre.get("post_url")
+            }
+        ],
+        "viewOption": "RANKED_UNFILTERED"   
     }
+
+    # Run the Actor and wait for it to finish
+    run = clientApify.actor("us5srxAYnsrkgUv2v").call(run_input=run_input)
+
+    #Lista donde se guardarán los comentarios
+    datos = []
+
+    # Fetch and print Actor results from the run's dataset (if there are any)
+    for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+        datos_e = extract_hashtags_mentions(item.get("text"))
+        # Convierte los datos en un objeto JSON
+        objeto_json = {
+            "type":"comentario de Facebook",
+            "socialNetwork": "facebook",
+            "content": item.get("text"),
+            "usernameSocialNetwork": padre.get("pageName"),
+            "dateCreated": item.get("date"),
+            "dateQuery":datetime.now(),
+            "location": "null",
+            "usersMentioned": datos_e.get("mentions"),
+            "properties":{
+                "postId":item.get("id"),
+                "postURL":item.get("commentUrl"),
+                "mediaURL":"No contiene",
+                "likes":item.get("likesCount"),
+                "comments":"No aplica"
+            },
+            "_parentEntryID":padre.get("user").get("id"),
+            "hashtags": datos_e.get('hashtags')
+        }
+        datos.append(objeto_json)
     
+    result = {"response": guardar_datos_en_mongo(datos)}
     return result
 
 #Función lambda que extrae la información de un usuario de Instagram 
@@ -172,7 +267,7 @@ def lambda_handler_fb(event, context):
     datos = []
     for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
         # Extraemos las menciones y hashtags del caption
-        datos_e = extract_hashtags_mentions(item.get("text"))
+        datos_e_e = extract_hashtags_mentions(item.get("text"))
 
         #Comprobar que el post tiene imágenes o videos
         media_data = item.get("media")
@@ -189,7 +284,7 @@ def lambda_handler_fb(event, context):
             "usernameSocialNetwork": username,
             "dateCreated": item.get("time"),
             "dateQuery":datetime.now(),
-            "usersMentioned": datos_e.get("mentions"),
+            "usersMentioned": datos_e_e.get("mentions"),
             "properties":{
                 "postId":item.get("postId"),
                 "postURL":item.get("url"),
@@ -200,7 +295,7 @@ def lambda_handler_fb(event, context):
                 "views":item.get("viewsCount"),
             },
             "_parentEntryID":item.get("user").get("id"),
-            "hashtags": datos_e.get("hashtags")
+            "hashtags": datos_e_e.get("hashtags")
         }
         datos.append(objeto_json)
     
