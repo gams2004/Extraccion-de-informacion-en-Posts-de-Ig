@@ -1,5 +1,5 @@
 # Extracción de información en Posts de Instagram y Facebook
-Proyecto en Python, integrado con AWS Lambda, que extraerá texto de los posts y comentarios de un perfil de Instagram y/o Facebook los actores de Apify:
+Proyecto en Python, integrado con AWS Lambda, que extraerá texto de los posts y comentarios de un perfil de Instagram y/o Facebook con los actores de Apify:
 -[Instagram Post Scraper](https://apify.com/apify/instagram-post-scraper/api/client/python)
 -[Facebook Post Scraper](https://apify.com/apify/facebook-posts-scraper)
 -[Facebook Comments Scraper](https://apify.com/apify/facebook-comments-scraper)
