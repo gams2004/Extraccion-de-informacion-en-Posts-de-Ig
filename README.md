@@ -6,6 +6,7 @@ Proyecto en Python, integrado con AWS Lambda, que extraerá texto de los posts y
 Además, realiza el guardado de los datos en una base de datos Mongo.
 
 Librerías utilizadas para el proyecto:
+
 - pymongo
 - apify 
 
