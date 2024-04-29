@@ -3,6 +3,7 @@ Proyecto en Python, integrado con AWS Lambda, que extraerá texto de los posts y
 - [Instagram Post Scraper](https://apify.com/apify/instagram-post-scraper/api/client/python)
 - [Facebook Post Scraper](https://apify.com/apify/facebook-posts-scraper)
 - [Facebook Comments Scraper](https://apify.com/apify/facebook-comments-scraper)
+
 Además, realiza el guardado de los datos en una base de datos Mongo.
 
 Librerías utilizadas para el proyecto:
