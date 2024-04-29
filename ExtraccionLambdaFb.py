@@ -147,10 +147,10 @@ def lambda_handler(event, context):
         # Extraemos las menciones y hashtags del caption
         datos_e_e = extract_hashtags_mentions(item.get("text"))
 
-        #Comprobar que el post tiene imágenes o videos
+        #Comprobar que el post tiene imágenes o videos y guardarlas en la variable uri_value
         media_data = item.get("media")
         if media_data:
-            uri_value = media_data[0]["thumbnailImage"]["uri"]
+            uri_value = [item["thumbnail"] for item in media_data]
         else:
             uri_value = "Sin contenido"
 
@@ -175,7 +175,7 @@ def lambda_handler(event, context):
             "_parentEntryID":item.get("user").get("id"),
             "hashtags": datos_e_e.get("hashtags")
         }
-        extraccion_comentarios_fb(item)
+        #extraccion_comentarios_fb(item)
         datos.append(objeto_json)
     
     result = {"response": guardar_datos_en_mongo(datos)}
