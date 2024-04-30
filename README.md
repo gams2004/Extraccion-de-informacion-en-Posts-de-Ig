@@ -31,6 +31,7 @@ Es importante contar con las últimas versiones de Python y PIP para correr el p
 _La fecha máxima de búsqueda debe estar en formato: AAAA-MM_-DD_.
 
 - El resultado de la función se guardará en la base de datos Mongo.
+  
 *Importante:* La base de datos de Mongo debe permitir conexiones desde cualquier dirección IP. En caso de no ser así, la función no podrá conectarse a la BD y fallará.
 ## Salida de datos
 
