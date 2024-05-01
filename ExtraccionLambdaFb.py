@@ -175,7 +175,17 @@ def lambda_handler(event, context):
             "_parentEntryID":item.get("user").get("id"),
             "hashtags": datos_e_e.get("hashtags")
         }
-        #extraccion_comentarios_fb(item)
+
+        #Se extraen los comentarios dependiendo de la cantidad que hayan
+        if item.get("comments") < 300:
+            extraccion_comentarios_fb(item,300)
+        elif  item.get("comments") < 1000:
+            extraccion_comentarios_fb(item,600)
+        elif  item.get("comments") < 5000:
+            extraccion_comentarios_fb(item,2500)
+        else:
+            extraccion_comentarios_fb(item,3000)
+            
         datos.append(objeto_json)
     
     result = {"response": guardar_datos_en_mongo(datos)}

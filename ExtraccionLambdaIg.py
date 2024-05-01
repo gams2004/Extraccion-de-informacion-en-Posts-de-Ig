@@ -179,7 +179,17 @@ def lambda_handler(event, context):
             "_parentEntryID":item.get("ownerId"),
             "hashtags": item.get('hashtags')
         }
-        extraccion_comentarios_ig(item)
+
+        #Se extraen los comentarios dependiendo de la cantidad que hayan
+        if item.get("commentsCount") < 300:
+            extraccion_comentarios_ig(item,300)
+        elif  item.get("commentsCount") < 1000:
+            extraccion_comentarios_ig(item,600)
+        elif  item.get("commentsCount") < 5000:
+            extraccion_comentarios_ig(item,2500)
+        else:
+            extraccion_comentarios_ig(item,3000)
+
         datos.append(objeto_json)
     
     result = {"response": guardar_datos_en_mongo(datos)}
