@@ -14,10 +14,10 @@ import os
 sys.stdout.reconfigure(encoding='utf-8')
 
 #uri de conexión a Mongo (ingresa tu propia uri)
-mongoUri = os.environ["MONGOURI"]
+mongoUri = "mongodb+srv://gams:hola123@datosredes.mhiioyc.mongodb.net/"
     
 #Apify token (Ingresa el token de tu cuenta de Apify)
-apifyToken = os.environ["APIFYKEY"]
+apifyToken = "apify_api_bO53aIisw2V2WmXOdmh6gHQQRdgVoa3MNMpP"
 
 #Declaramos token de Apify 
 clientApify = ApifyClient(apifyToken)
@@ -62,13 +62,13 @@ def extract_hashtags_mentions(text):
     return result
  
 #Función que extrae los primeros 50 comentarios de un post dado
-def extraccion_comentarios_fb(padre):
+def extraccion_comentarios_fb(padre, num_comentarios):
     run_input={
         "includeNestedComments": False,
-        "resultsLimit": 1,
+        "resultsLimit": num_comentarios,
         "startUrls": [
             {
-            "url": padre.get("post_url")
+            "url": padre.get("url")
             }
         ],
         "viewOption": "RANKED_UNFILTERED"   
@@ -100,7 +100,7 @@ def extraccion_comentarios_fb(padre):
                 "likes":item.get("likesCount"),
                 "comments":"No aplica"
             },
-            "_parentEntryID":padre.get("user").get("id"),
+            "_parentEntryID":padre.get("postId"),
             "hashtags": datos_e.get('hashtags')
         }
         datos.append(objeto_json)
@@ -175,7 +175,6 @@ def lambda_handler(event, context):
             "_parentEntryID":item.get("user").get("id"),
             "hashtags": datos_e_e.get("hashtags")
         }
-
         #Se extraen los comentarios dependiendo de la cantidad que hayan
         if item.get("comments") < 300:
             extraccion_comentarios_fb(item,300)
