@@ -14,10 +14,10 @@ import os
 sys.stdout.reconfigure(encoding='utf-8')
 
 #uri de conexión a Mongo (ingresa tu propia uri)
-mongoUri = "mongodb+srv://gams:hola123@datosredes.mhiioyc.mongodb.net/"
+mongoUri = os.environ["MONGOURI"]
     
 #Apify token (Ingresa el token de tu cuenta de Apify)
-apifyToken = "apify_api_bO53aIisw2V2WmXOdmh6gHQQRdgVoa3MNMpP"
+apifyToken = os.environ["APIFYKEY"]
 
 #Declaramos token de Apify 
 clientApify = ApifyClient(apifyToken)
@@ -175,6 +175,7 @@ def lambda_handler(event, context):
             "_parentEntryID":item.get("user").get("id"),
             "hashtags": datos_e_e.get("hashtags")
         }
+        
         #Se extraen los comentarios dependiendo de la cantidad que hayan
         if item.get("comments") < 300:
             extraccion_comentarios_fb(item,300)
