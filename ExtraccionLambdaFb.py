@@ -122,11 +122,10 @@ def lambda_handler(event, context):
     
     if not username:
         return {"response": "No se proporciona nombre de usuario"}
-    
     if not date_until_search:
-        date_until_search = "2023-12-24"
+        return {"response": "No se proporciona fecha máxima"}
     if not max_posts:
-        max_posts=10
+        return {"response": "No se proporciona máximo de posts"}
 
 
     run_input = {
@@ -138,58 +137,61 @@ def lambda_handler(event, context):
             }
         ]
     }
+    try:
+        # Corre el actor que extraerá la información
+        run = clientApify.actor("KoJrdxJCTtpon81KY").call(run_input=run_input)
 
-    # Corre el actor que extraerá la información
-    run = clientApify.actor("KoJrdxJCTtpon81KY").call(run_input=run_input)
+        datos = []
+        for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+            # Extraemos las menciones y hashtags del caption
+            datos_e_e = extract_hashtags_mentions(item.get("text"))
 
-    datos = []
-    for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
-        # Extraemos las menciones y hashtags del caption
-        datos_e_e = extract_hashtags_mentions(item.get("text"))
+            #Comprobar que el post tiene imágenes o videos y guardarlas en la variable uri_value
+            media_data = item.get("media")
+            if media_data:
+                uri_value = [item["thumbnail"] for item in media_data]
+            else:
+                uri_value = "Sin contenido"
 
-        #Comprobar que el post tiene imágenes o videos y guardarlas en la variable uri_value
-        media_data = item.get("media")
-        if media_data:
-            uri_value = [item["thumbnail"] for item in media_data]
-        else:
-            uri_value = "Sin contenido"
-
-        # Convierte los datos en un objeto JSON
-        objeto_json = {
-            "type":"post de Facebook",
-            "socialNetwork": "facebook",
-            "content": item.get("text"),
-            "usernameSocialNetwork": username,
-            "dateCreated": str(item.get("time")),
-            "dateQuery":str(datetime.now()),
-            "usersMentioned": datos_e_e.get("mentions"),
-            "properties":{
-                "postId":item.get("postId"),
-                "postURL":item.get("url"),
-                "mediaURL":uri_value,
-                "comments":item.get("comments"),
-                "reactions":item.get("likes"),
-                "shares":item.get("shares"),
-                "views":item.get("viewsCount"),
-            },
-            "_parentEntryID":item.get("user").get("id"),
-            "hashtags": datos_e_e.get("hashtags")
-        }
-        
-        #Se extraen los comentarios dependiendo de la cantidad que hayan
-        if item.get("comments") < 300:
-            extraccion_comentarios_fb(item,300)
-        elif  item.get("comments") < 1000:
-            extraccion_comentarios_fb(item,600)
-        elif  item.get("comments") < 5000:
-            extraccion_comentarios_fb(item,2500)
-        else:
-            extraccion_comentarios_fb(item,3000)
+            # Convierte los datos en un objeto JSON
+            objeto_json = {
+                "type":"post de Facebook",
+                "socialNetwork": "facebook",
+                "content": item.get("text"),
+                "usernameSocialNetwork": username,
+                "dateCreated": str(item.get("time")),
+                "dateQuery":str(datetime.now()),
+                "usersMentioned": datos_e_e.get("mentions"),
+                "properties":{
+                    "postId":item.get("postId"),
+                    "postURL":item.get("url"),
+                    "mediaURL":uri_value,
+                    "comments":item.get("comments"),
+                    "reactions":item.get("likes"),
+                    "shares":item.get("shares"),
+                    "views":item.get("viewsCount"),
+                },
+                "_parentEntryID":item.get("user").get("id"),
+                "hashtags": datos_e_e.get("hashtags")
+            }
             
-        datos.append(objeto_json)
-    
-    result = {"response": guardar_datos_en_mongo(datos)}
-    return result
+            #Se extraen los comentarios dependiendo de la cantidad que hayan
+            if item.get("comments") < 300:
+                extraccion_comentarios_fb(item,300)
+            elif  item.get("comments") < 1000:
+                extraccion_comentarios_fb(item,600)
+            elif  item.get("comments") < 5000:
+                extraccion_comentarios_fb(item,2500)
+            else:
+                extraccion_comentarios_fb(item,3000)
+                
+            datos.append(objeto_json)
+        
+        return {"response": guardar_datos_en_mongo(datos)}
+
+    except Exception as e:
+        return {"response": "Error: " + str(e)}
+
 
 #Evento con los parámetros de búsqueda
 event={
