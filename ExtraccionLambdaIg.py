@@ -124,12 +124,10 @@ def lambda_handler(event, context):
     
     if not username:
         return {"response": "No se proporciona nombre de usuario"}
-    
     if not date_until_search:
-        date_until_search = "2023-12-24"
+        return {"response": "No se proporciona fecha máxima"}
     if not max_posts:
-        max_posts=10
-
+        return {"response": "No se proporciona máximo de posts"}
 
     run_input = {
         "addParentData": False,
@@ -143,57 +141,59 @@ def lambda_handler(event, context):
         "resultsType": "posts"
     }
 
-    # Corre el actor que extraerá la información
-    run = clientApify.actor("shu8hvrXbJbY3Eb9W").call(run_input=run_input)
+    try:
+        # Corre el actor que extraerá la información
+        run = clientApify.actor("shu8hvrXbJbY3Eb9W").call(run_input=run_input)
 
-    datos = []
-    for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
-        tipo = item.get("type")
+        datos = []
+        for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+            tipo = item.get("type")
 
-        if tipo == "Video":
-            mediaURL = [item.get("videoUrl")]
+            if tipo == "Video":
+                mediaURL = [item.get("videoUrl")]
 
-        if tipo == "Sidecar":
-            mediaURL = item.get("images")
+            if tipo == "Sidecar":
+                mediaURL = item.get("images")
 
-        if tipo == "Image":
-            mediaURL = [item.get("displayUrl")]
+            if tipo == "Image":
+                mediaURL = [item.get("displayUrl")]
 
-        # Convierte los datos en un objeto JSON
-        objeto_json = {
-            "type":"post de Instagram",
-            "socialNetwork": "instagram",
-            "content": item.get("caption"),
-            "usernameSocialNetwork": username,
-            "dateCreated": str(item.get("timestamp")),
-            "dateQuery":str(datetime.now()),
-            "location": item.get("locationName"),
-            "usersMentioned": item.get("mentions"),
-            "properties":{
-                "postId":item.get("id"),
-                "postURL":item.get("url"),
-                "mediaURL":mediaURL,
-                "likes":item.get("likesCount"),
-                "comments":item.get("commentsCount")
-            },
-            "_parentEntryID":item.get("ownerId"),
-            "hashtags": item.get('hashtags')
-        }
+            # Convierte los datos en un objeto JSON
+            objeto_json = {
+                "type":"post de Instagram",
+                "socialNetwork": "instagram",
+                "content": item.get("caption"),
+                "usernameSocialNetwork": username,
+                "dateCreated": str(item.get("timestamp")),
+                "dateQuery":str(datetime.now()),
+                "location": item.get("locationName"),
+                "usersMentioned": item.get("mentions"),
+                "properties":{
+                    "postId":item.get("id"),
+                    "postURL":item.get("url"),
+                    "mediaURL":mediaURL,
+                    "likes":item.get("likesCount"),
+                    "comments":item.get("commentsCount")
+                },
+                "_parentEntryID":item.get("ownerId"),
+                "hashtags": item.get('hashtags')
+            }
 
-        #Se extraen los comentarios dependiendo de la cantidad que hayan
-        if item.get("commentsCount") < 300:
-            extraccion_comentarios_ig(item,300)
-        elif  item.get("commentsCount") < 1000:
-            extraccion_comentarios_ig(item,600)
-        elif  item.get("commentsCount") < 5000:
-            extraccion_comentarios_ig(item,2500)
-        else:
-            extraccion_comentarios_ig(item,3000)
+            #Se extraen los comentarios dependiendo de la cantidad que hayan
+            if item.get("commentsCount") < 300:
+                extraccion_comentarios_ig(item,300)
+            elif  item.get("commentsCount") < 1000:
+                extraccion_comentarios_ig(item,600)
+            elif  item.get("commentsCount") < 5000:
+                extraccion_comentarios_ig(item,2500)
+            else:
+                extraccion_comentarios_ig(item,3000)
 
-        datos.append(objeto_json)
-    
-    result = {"response": guardar_datos_en_mongo(datos)}
-    return result
+            datos.append(objeto_json)
+
+        return {"response": guardar_datos_en_mongo(datos)}
+    except Exception as e:
+        return {"response": "Error" + str(e)}
 
 #Evento con los parámetros de búsqueda
 event={
