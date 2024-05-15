@@ -191,14 +191,3 @@ def lambda_handler(event, context):
 
     except Exception as e:
         return {"response": "Error: " + str(e)}
-
-
-#Evento con los parámetros de búsqueda
-event={
-    "username":"gustavopetrourrego",
-    "date_until_search":"2023-12-24",
-    "max_posts": 3
-}
-
-print(lambda_handler(event, None))
-
