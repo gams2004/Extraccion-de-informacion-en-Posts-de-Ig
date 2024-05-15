@@ -62,7 +62,7 @@ def extract_hashtags_mentions(text):
     return result
     
 #Función que extrae los primeros 50 comentarios de un post dado
-def extraccion_comentarios_ig(padre):
+def extraccion_comentarios_ig(padre, num_comentarios):
     run_input={
         "addParentData": False,
         "directUrls": [
@@ -70,7 +70,7 @@ def extraccion_comentarios_ig(padre):
         ],
         "enhanceUserSearchWithFacebookPage": False,
         "isUserTaggedFeedURL": False,
-        "resultsLimit": 1,
+        "resultsLimit": num_comentarios,
         "resultsType": "comments",
         "searchType": "hashtag"
     }
