@@ -19,18 +19,6 @@ mongoUri = os.environ["MONGOURI"]
 #Apify token (Ingresa el token de tu cuenta de Apify)
 apifyToken = os.environ["APIFYKEY"]
 
-#Declaramos token de Apify 
-clientApify = ApifyClient(apifyToken)
-
-# Crea un nuevo cliente y se contecta al servidor
-clientMongo = MongoClient(mongoUri, server_api=ServerApi('1'))
-
-# Se conecta a la base de datos
-db = clientMongo.datosRedesSociales
-
-# Utilizamos la colección "datos"
-collection = db["Entries"]
-
 #Función para comprobar si una fecha es posterior a la fecha actual
 def es_fecha_despues_de_hoy(fecha):
     try:
@@ -44,6 +32,15 @@ def es_fecha_despues_de_hoy(fecha):
 # Función para guardar datos en MongoDB desde Python, recibe una lista de objetos json
 def guardar_datos_en_mongo(datos):
     try:
+        # Crea un nuevo cliente y se contecta al servidor
+        clientMongo = MongoClient(mongoUri, server_api=ServerApi('1'))
+
+        # Se conecta a la base de datos
+        db = clientMongo.datosRedesSociales
+
+        # Utilizamos la colección "datos"
+        collection = db["Entries"]
+
         for obj in datos:
             # Insertar el objeto JSON en la base de datos
             collection.insert_one(obj)
@@ -84,13 +81,16 @@ def extraccion_comentarios_fb(padre, num_comentarios):
         "viewOption": "RANKED_UNFILTERED"   
     }
 
-    # Run the Actor and wait for it to finish
-    run = clientApify.actor("us5srxAYnsrkgUv2v").call(run_input=run_input)
-
     #Lista donde se guardarán los comentarios
     datos = []
 
     try:
+        #Declaramos token de Apify 
+        clientApify = ApifyClient(apifyToken)
+
+        # Run the Actor and wait for it to finish
+        run = clientApify.actor("us5srxAYnsrkgUv2v").call(run_input=run_input)
+
         # Fetch and print Actor results from the run's dataset (if there are any)
         for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
             datos_e = extract_hashtags_mentions(item.get("text"))
@@ -157,11 +157,15 @@ def lambda_handler(event, context):
     }
 
     try:
+        #Declaramos token de Apify 
+        clientApify = ApifyClient(apifyToken)
+
         # Corre el actor que extraerá la información
         run = clientApify.actor("KoJrdxJCTtpon81KY").call(run_input=run_input)
 
         datos = []
         for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+
             # Extraemos las menciones y hashtags del caption
             datos_e_e = extract_hashtags_mentions(item.get("text"))
 
@@ -195,6 +199,7 @@ def lambda_handler(event, context):
             }
             
             #Se extraen los comentarios dependiendo de la cantidad que hayan
+
             if item.get("comments") < 300:
                 extraccion_comentarios_fb(item,300)
             elif  item.get("comments") < 1000:
@@ -205,8 +210,13 @@ def lambda_handler(event, context):
                 extraccion_comentarios_fb(item,3000)
                 
             datos.append(objeto_json)
+
+        #Revisa que se hayan podido extraer datos del perfil
+        if len(datos) == 0:
+            return {"response": "No se pudieron extraer datos del perfil"}
         
         return {"response": guardar_datos_en_mongo(datos)}
 
     except Exception as e:
         return {"response": "Error: " + str(e)}
+

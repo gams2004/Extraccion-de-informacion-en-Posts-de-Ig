@@ -19,18 +19,6 @@ mongoUri = os.environ["MONGOURI"]
 #Apify token (Ingresa el token de tu cuenta de Apify)
 apifyToken = os.environ["APIFYKEY"]
 
-#Declaramos token de Apify 
-clientApify = ApifyClient(apifyToken)
-
-# Crea un nuevo cliente y se contecta al servidor
-clientMongo = MongoClient(mongoUri, server_api=ServerApi('1'))
-
-# Se conecta a la base de datos
-db = clientMongo.datosRedesSociales
-
-# Utilizamos la colección "datos"
-collection = db["Entries"]
-
 #Función para comprobar si una fecha es posterior a la fecha actual
 def es_fecha_despues_de_hoy(fecha):
     try:
@@ -44,6 +32,16 @@ def es_fecha_despues_de_hoy(fecha):
 # Función para guardar datos en MongoDB desde Python, recibe una lista de objetos json
 def guardar_datos_en_mongo(datos):
     try:
+
+        # Crea un nuevo cliente y se contecta al servidor
+        clientMongo = MongoClient(mongoUri, server_api=ServerApi('1'))
+
+        # Se conecta a la base de datos
+        db = clientMongo.datosRedesSociales
+
+        # Utilizamos la colección "datos"
+        collection = db["Entries"]
+
         for obj in datos:
             # Insertar el objeto JSON en la base de datos
             collection.insert_one(obj)
@@ -86,6 +84,10 @@ def extraccion_comentarios_ig(padre, num_comentarios):
     }
 
     try:
+
+        #Declaramos token de Apify 
+        clientApify = ApifyClient(apifyToken)
+
         # Run the Actor and wait for it to finish
         run = clientApify.actor("shu8hvrXbJbY3Eb9W").call(run_input=run_input)
 
@@ -160,6 +162,9 @@ def lambda_handler(event, context):
     }
 
     try:
+        #Declaramos token de Apify 
+        clientApify = ApifyClient(apifyToken)
+
         # Corre el actor que extraerá la información
         run = clientApify.actor("shu8hvrXbJbY3Eb9W").call(run_input=run_input)
 
@@ -208,6 +213,10 @@ def lambda_handler(event, context):
                 extraccion_comentarios_ig(item,3000)
 
             datos.append(objeto_json)
+
+        #Revisa que se hayan podido extraer datos del perfil
+        if len(datos) == 0:
+            return {"response": "No se pudieron extraer datos del perfil"}
 
         return {"response": guardar_datos_en_mongo(datos)}
     
