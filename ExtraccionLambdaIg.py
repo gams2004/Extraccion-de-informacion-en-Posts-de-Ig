@@ -31,6 +31,16 @@ db = clientMongo.datosRedesSociales
 # Utilizamos la colección "datos"
 collection = db["Entries"]
 
+#Función para comprobar si una fecha es posterior a la fecha actual
+def es_fecha_despues_de_hoy(fecha):
+    try:
+        fecha_entrada = datetime.strptime(fecha, '%Y-%m-%d')
+        hoy = datetime.now()
+        return fecha_entrada > hoy
+    except ValueError:
+        print("Formato de fecha incorrecto. Utiliza el formato AAAA-MM-DD.")
+        return False
+
 # Función para guardar datos en MongoDB desde Python, recibe una lista de objetos json
 def guardar_datos_en_mongo(datos):
     try:
@@ -122,12 +132,17 @@ def lambda_handler(event, context):
     # Obtenemos el número máximo de posts a buscar
     max_posts = event.get("max_posts")
     
+    #Comprobaciones de campos faltantes
     if not username:
         return {"response": "No se proporciona nombre de usuario"}
     if not date_until_search:
         return {"response": "No se proporciona fecha máxima"}
     if not max_posts:
         return {"response": "No se proporciona máximo de posts"}
+
+    #Comprueba si la fecha es posterior a la actual
+    if es_fecha_despues_de_hoy(date_until_search):
+        return {"response": "Fecha incorrecta. La fecha debe ser anterior a la fecha actual"}
 
     run_input = {
         "addParentData": False,
@@ -192,5 +207,7 @@ def lambda_handler(event, context):
             datos.append(objeto_json)
 
         return {"response": guardar_datos_en_mongo(datos)}
+    
     except Exception as e:
         return {"response": "Error" + str(e)}
+
