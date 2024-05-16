@@ -90,33 +90,37 @@ def extraccion_comentarios_fb(padre, num_comentarios):
     #Lista donde se guardarán los comentarios
     datos = []
 
-    # Fetch and print Actor results from the run's dataset (if there are any)
-    for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
-        datos_e = extract_hashtags_mentions(item.get("text"))
-        # Convierte los datos en un objeto JSON
-        objeto_json = {
-            "type":"comentario de Facebook",
-            "socialNetwork": "facebook",
-            "content": item.get("text"),
-            "usernameSocialNetwork": padre.get("pageName"),
-            "dateCreated": str(item.get("date")),
-            "dateQuery":str(datetime.now()),
-            "location": "null",
-            "usersMentioned": datos_e.get("mentions"),
-            "properties":{
-                "postId":item.get("id"),
-                "postURL":item.get("commentUrl"),
-                "mediaURL":"No contiene",
-                "likes":item.get("likesCount"),
-                "comments":"No aplica"
-            },
-            "_parentEntryID":padre.get("postId"),
-            "hashtags": datos_e.get('hashtags')
-        }
-        datos.append(objeto_json)
+    try:
+        # Fetch and print Actor results from the run's dataset (if there are any)
+        for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+            datos_e = extract_hashtags_mentions(item.get("text"))
+            # Convierte los datos en un objeto JSON
+            objeto_json = {
+                "type":"comentario de Facebook",
+                "socialNetwork": "facebook",
+                "content": item.get("text"),
+                "usernameSocialNetwork": padre.get("pageName"),
+                "dateCreated": str(item.get("date")),
+                "dateQuery":str(datetime.now()),
+                "location": "null",
+                "usersMentioned": datos_e.get("mentions"),
+                "properties":{
+                    "postId":item.get("id"),
+                    "postURL":item.get("commentUrl"),
+                    "mediaURL":"No contiene",
+                    "likes":item.get("likesCount"),
+                    "comments":"No aplica"
+                },
+                "_parentEntryID":padre.get("postId"),
+                "hashtags": datos_e.get('hashtags')
+            }
+            datos.append(objeto_json)
+        
+        result = {"response": guardar_datos_en_mongo(datos)}
+        return result
     
-    result = {"response": guardar_datos_en_mongo(datos)}
-    return result
+    except Exception as e:
+        return {"response": "Error: " + str(e)}
 
 #Función lambda que extrae la información de un usuario de Instagram 
 def lambda_handler(event, context): 
@@ -151,6 +155,7 @@ def lambda_handler(event, context):
             }
         ]
     }
+
     try:
         # Corre el actor que extraerá la información
         run = clientApify.actor("KoJrdxJCTtpon81KY").call(run_input=run_input)

@@ -85,40 +85,43 @@ def extraccion_comentarios_ig(padre, num_comentarios):
         "searchType": "hashtag"
     }
 
-    # Run the Actor and wait for it to finish
-    run = clientApify.actor("shu8hvrXbJbY3Eb9W").call(run_input=run_input)
+    try:
+        # Run the Actor and wait for it to finish
+        run = clientApify.actor("shu8hvrXbJbY3Eb9W").call(run_input=run_input)
 
-    #Lista donde se guardarán los comentarios
-    datos = []
+        #Lista donde se guardarán los comentarios
+        datos = []
 
-    # Fetch and print Actor results from the run's dataset (if there are any)
-    for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
-        datos_e = extract_hashtags_mentions(item.get("text"))
-        # Convierte los datos en un objeto JSON
-        objeto_json = {
-            "type":"comentario de Instagram",
-            "socialNetwork": "instagram",
-            "content": item.get("text"),
-            "usernameSocialNetwork": item.get("ownerUsername"),
-            "dateCreated": str(item.get("timestamp")),
-            "dateQuery":str(datetime.now()),
-            "location": "null",
-            "usersMentioned": datos_e.get("mentions"),
-            "properties":{
-                "postId":item.get("id"),
-                "postURL":"No contiene",
-                "mediaURL":"No contiene",
-                "likes":item.get("likesCount"),
-                "comments":"No aplica"
-            },
-            "_parentEntryID":padre.get("id"),
-            "hashtags": datos_e.get('hashtags')
-        }
-        datos.append(objeto_json)
+        # Fetch and print Actor results from the run's dataset (if there are any)
+        for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
+            datos_e = extract_hashtags_mentions(item.get("text"))
+            # Convierte los datos en un objeto JSON
+            objeto_json = {
+                "type":"comentario de Instagram",
+                "socialNetwork": "instagram",
+                "content": item.get("text"),
+                "usernameSocialNetwork": item.get("ownerUsername"),
+                "dateCreated": str(item.get("timestamp")),
+                "dateQuery":str(datetime.now()),
+                "location": "null",
+                "usersMentioned": datos_e.get("mentions"),
+                "properties":{
+                    "postId":item.get("id"),
+                    "postURL":"No contiene",
+                    "mediaURL":"No contiene",
+                    "likes":item.get("likesCount"),
+                    "comments":"No aplica"
+                },
+                "_parentEntryID":padre.get("id"),
+                "hashtags": datos_e.get('hashtags')
+            }
+            datos.append(objeto_json)
+        
+        result = {"response": guardar_datos_en_mongo(datos)}
+        return result
     
-    result = {"response": guardar_datos_en_mongo(datos)}
-    return result
-
+    except Exception as e:
+        return {"response": "Error: " + str(e)}
 
 #Función lambda que extrae la información de un usuario de Instagram 
 def lambda_handler(event, context): 
