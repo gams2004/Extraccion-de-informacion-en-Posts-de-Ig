@@ -156,6 +156,23 @@ def lambda_handler(event, context):
         ]
     }
 
+    #Se prueba la conexión a la base de datos antes de ejecutar el actor
+    try:
+        #Intenta llamar a la base de datos
+        clientMongo = MongoClient(mongoUri, server_api=ServerApi('1'))
+        # Se conecta a la base de datos
+        db = clientMongo.datosRedesSociales
+        # Utilizamos la colección "datos"
+        collection = db["Entries"]
+        insert_result= collection.insert_one({"":""})
+        # Obtener el ID del registro insertado
+        inserted_id = insert_result.inserted_id
+        # Eliminar el registro recién insertado
+        collection.delete_one({"_id": inserted_id})
+    
+    except Exception as e:
+        return {"response": "Error: " + str(e)}
+
     try:
         #Declaramos token de Apify 
         clientApify = ApifyClient(apifyToken)
