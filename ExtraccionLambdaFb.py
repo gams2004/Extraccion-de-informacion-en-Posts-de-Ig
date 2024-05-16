@@ -48,7 +48,7 @@ def guardar_datos_en_mongo(datos):
         return 'Datos guardados correctamente en MongoDB.'
 
     except Exception as e:
-        return 'Error al guardar los datos en MongoDB:', e 
+        return 'Error al guardar los datos en MongoDB:', str(e) 
 
 #Función que extrae los hashtags y menciones de un texto    
 def extract_hashtags_mentions(text):
