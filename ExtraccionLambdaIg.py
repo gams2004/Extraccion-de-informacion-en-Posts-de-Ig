@@ -70,12 +70,10 @@ def extract_hashtags_mentions(text):
     return result
     
 #Función que extrae los primeros 50 comentarios de un post dado
-def extraccion_comentarios_ig(padre, num_comentarios):
+def extraccion_comentarios_ig(padre, urls, num_comentarios):
     run_input={
         "addParentData": False,
-        "directUrls": [
-            str(padre.get("url"))
-        ],
+        "directUrls": urls,
         "enhanceUserSearchWithFacebookPage": False,
         "isUserTaggedFeedURL": False,
         "resultsLimit": num_comentarios,
@@ -93,6 +91,12 @@ def extraccion_comentarios_ig(padre, num_comentarios):
 
         #Lista donde se guardarán los comentarios
         datos = []
+
+        #Contador para determinar iteración
+        it = 0
+
+        #Contador para determinar en qué post se está ubicado
+        cont_p = 0
 
         # Fetch and print Actor results from the run's dataset (if there are any)
         for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
@@ -114,10 +118,17 @@ def extraccion_comentarios_ig(padre, num_comentarios):
                     "likes":item.get("likesCount"),
                     "comments":"No aplica"
                 },
-                "_parentEntryID":padre.get("id"),
+                "_parentEntryID":padre[cont_p].get("properties").get("postId"),
                 "hashtags": datos_e.get('hashtags')
             }
+
+            # Agrega el objeto JSON a la lista
             datos.append(objeto_json)
+            it+=1
+            
+            #Se pasa al siguiente post cuando ya se extrajo el número de comentarios indicado para cada post
+            if it % num_comentarios == 0:
+                cont_p+=1 
         
         result = {"response": guardar_datos_en_mongo(datos)}
         return result
@@ -185,7 +196,12 @@ def lambda_handler(event, context):
         # Corre el actor que extraerá la información
         run = clientApify.actor("shu8hvrXbJbY3Eb9W").call(run_input=run_input)
 
+        #Lista de posts a guardar
         datos = []
+
+        #Lista de URLs
+        urls = []
+
         for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
             tipo = item.get("type")
 
@@ -218,18 +234,11 @@ def lambda_handler(event, context):
                 "_parentEntryID":item.get("ownerId"),
                 "hashtags": item.get('hashtags')
             }
-
-            #Se extraen los comentarios dependiendo de la cantidad que hayan
-            if item.get("commentsCount") < 300:
-                extraccion_comentarios_ig(item,300)
-            elif  item.get("commentsCount") < 1000:
-                extraccion_comentarios_ig(item,600)
-            elif  item.get("commentsCount") < 5000:
-                extraccion_comentarios_ig(item,2500)
-            else:
-                extraccion_comentarios_ig(item,3000)
-
+            urls.append(str(item.get("url")))
             datos.append(objeto_json)
+
+        #Extrae los comentarios de los posts
+        extraccion_comentarios_ig(datos,urls,2)
 
         #Revisa que se hayan podido extraer datos del perfil
         if len(datos) == 0:
