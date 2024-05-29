@@ -32,6 +32,7 @@ def es_fecha_despues_de_hoy(fecha):
 # Función para guardar datos en MongoDB desde Python, recibe una lista de objetos json
 def guardar_datos_en_mongo(datos):
     try:
+
         # Crea un nuevo cliente y se contecta al servidor
         clientMongo = MongoClient(mongoUri, server_api=ServerApi('1'))
 
@@ -69,20 +70,13 @@ def extract_hashtags_mentions(text):
     return result
  
 #Función que extrae los primeros 50 comentarios de un post dado
-def extraccion_comentarios_fb(padre, num_comentarios):
+def extraccion_comentarios_ig(padre, urls, num_comentarios):
     run_input={
         "includeNestedComments": False,
         "resultsLimit": num_comentarios,
-        "startUrls": [
-            {
-            "url": padre.get("url")
-            }
-        ],
+        "startUrls": urls,
         "viewOption": "RANKED_UNFILTERED"   
     }
-
-    #Lista donde se guardarán los comentarios
-    datos = []
 
     try:
         #Declaramos token de Apify 
@@ -90,6 +84,15 @@ def extraccion_comentarios_fb(padre, num_comentarios):
 
         # Run the Actor and wait for it to finish
         run = clientApify.actor("us5srxAYnsrkgUv2v").call(run_input=run_input)
+
+        #Lista donde se guardarán los comentarios
+        datos = []
+
+        #Contador para determinar iteración
+        it = 0
+
+        #Contador para determinar en qué post se está ubicado
+        cont_p = 0
 
         # Fetch and print Actor results from the run's dataset (if there are any)
         for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
@@ -99,7 +102,7 @@ def extraccion_comentarios_fb(padre, num_comentarios):
                 "type":"comentario de Facebook",
                 "socialNetwork": "facebook",
                 "content": item.get("text"),
-                "usernameSocialNetwork": padre.get("pageName"),
+                "usernameSocialNetwork": padre[cont_p].get("pageName"),
                 "dateCreated": str(item.get("date")),
                 "dateQuery":str(datetime.now()),
                 "location": "null",
@@ -111,10 +114,15 @@ def extraccion_comentarios_fb(padre, num_comentarios):
                     "likes":item.get("likesCount"),
                     "comments":"No aplica"
                 },
-                "_parentEntryID":padre.get("postId"),
+                "_parentEntryID":padre[cont_p].get("postId"),
                 "hashtags": datos_e.get('hashtags')
             }
             datos.append(objeto_json)
+            it+=1
+            
+            #Se pasa al siguiente post cuando ya se extrajo el número de comentarios indicado para cada post
+            if it % num_comentarios == 0:
+                cont_p+=1 
         
         result = {"response": guardar_datos_en_mongo(datos)}
         return result
@@ -180,7 +188,15 @@ def lambda_handler(event, context):
         # Corre el actor que extraerá la información
         run = clientApify.actor("KoJrdxJCTtpon81KY").call(run_input=run_input)
 
+        #Lista de posts a guardar
         datos = []
+
+        #Lista con todos los items extraidos
+        items = []
+
+        #Lista de URLs
+        urls = []
+
         for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
 
             # Extraemos las menciones y hashtags del caption
@@ -214,19 +230,13 @@ def lambda_handler(event, context):
                 "_parentEntryID":item.get("user").get("id"),
                 "hashtags": datos_e_e.get("hashtags")
             }
-            
-            #Se extraen los comentarios dependiendo de la cantidad que hayan
 
-            if item.get("comments") < 300:
-                extraccion_comentarios_fb(item,300)
-            elif  item.get("comments") < 1000:
-                extraccion_comentarios_fb(item,600)
-            elif  item.get("comments") < 5000:
-                extraccion_comentarios_fb(item,2500)
-            else:
-                extraccion_comentarios_fb(item,3000)
-                
+            urls.append(str(item.get("url")))
             datos.append(objeto_json)
+            items.append(item)
+
+        #Extrae los comentarios de los posts
+        extraccion_comentarios_ig(items,urls,2)
 
         #Revisa que se hayan podido extraer datos del perfil
         if len(datos) == 0:
