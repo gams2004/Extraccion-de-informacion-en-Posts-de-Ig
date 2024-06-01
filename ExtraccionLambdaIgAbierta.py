@@ -138,7 +138,7 @@ def extraccion_comentarios_ig(padre, urls, num_comentarios):
     except Exception as e:
         return {"response": "Error: " + str(e)}
     
-def extraer_posts(posts, busqueda):
+def extraer_posts(posts, busqueda, max_comments):
 
     #Lista de posts a guardar
     datos = []
@@ -183,7 +183,7 @@ def extraer_posts(posts, busqueda):
         datos.append(objeto_json)
     
     #Extrae los comentarios de los posts
-    extraccion_comentarios_ig(datos,urls,2)
+    extraccion_comentarios_ig(datos,urls,max_comments)
 
     #Revisa que se hayan podido extraer datos del perfil
     if len(datos) == 0:
@@ -202,6 +202,9 @@ def lambda_handler(event, context):
 
     # Obtenemos el número máximo de posts a buscar
     max_posts = event.get("max_posts")
+
+    # Obtenemos el número máximo de comentarios a buscar
+    max_comments = event.get("max_comments")
     
     #Comprobaciones de campos faltantes
     if not busqueda:
@@ -210,6 +213,8 @@ def lambda_handler(event, context):
         return {"response": "No se proporciona fecha máxima"}
     if not max_posts:
         return {"response": "No se proporciona máximo de posts"}
+    if not max_comments:
+        return {"response": "No se proporciona máximo de comentarios"}
 
     #Comprueba si la fecha es posterior a la actual
     if es_fecha_despues_de_hoy(date_until_search):
@@ -265,7 +270,7 @@ def lambda_handler(event, context):
         if len(datos) == 0:
             return {"response": "No se encontraron resultados asociados a la búsqueda"}
 
-        return extraer_posts(datos[2].get("latestPosts")[:max_posts], busqueda)
+        return extraer_posts(datos[2].get("latestPosts")[:max_posts], busqueda, max_comments)
     
     except Exception as e:
         return {"response": "Error" + str(e)}
