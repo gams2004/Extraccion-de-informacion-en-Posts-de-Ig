@@ -45,7 +45,7 @@ Es importante contar con las últimas versiones de Python y PIP para correr el p
 ### Búqueda abierta Facebook
 ```
 {
-  "search": "[<lista de busquedas a realizar>]",
+  "search": ["<lista>", "<de>", "<busquedas>", "<a>", "<realizar>"],
   "date_until_search": "<fecha máxima en la que se buscarán los posts>", 
   "max_posts": <número máximo de posts a buscar>,
   "max_comments": <número máximo de comentarios a buscar>
