@@ -207,6 +207,9 @@ def lambda_handler(event, context):
         #Lista de URLs
         urls = []
 
+        #Lista de posts con comentarios
+        posts_con_comentarios = []
+
         for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
             if not item.get("error"):
                 tipo = item.get("type")
@@ -242,10 +245,12 @@ def lambda_handler(event, context):
                 }
                 if item.get("commentsCount") > 0:
                     urls.append(str(item.get("url")))
+                    posts_con_comentarios.append(objeto_json)
+
                 datos.append(objeto_json)
 
         #Extrae los comentarios de los posts
-        extraccion_comentarios_ig(datos,urls,max_comments)
+        extraccion_comentarios_ig(posts_con_comentarios,urls,max_comments)
 
         #Revisa que se hayan podido extraer datos del perfil
         if len(datos) == 0:
