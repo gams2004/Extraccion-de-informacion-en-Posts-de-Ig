@@ -140,7 +140,7 @@ def extraccion_comentarios_ig(padre, urls, num_comentarios):
     except Exception as e:
         return {"response": "Error: " + str(e)}
     
-def extraer_posts(posts, busqueda, max_comments):
+def extraer_posts(posts, search, max_comments):
 
     #Lista de posts a guardar
     datos = []
@@ -168,7 +168,7 @@ def extraer_posts(posts, busqueda, max_comments):
             "type":"post de Instagram",
             "socialNetwork": "instagram",
             "content": item.get("caption"),
-            "search": busqueda,
+            "search": search,
             "dateCreated": str(item.get("timestamp")),
             "dateQuery":str(datetime.now()),
             "location": item.get("locationName"),
@@ -201,7 +201,7 @@ def extraer_posts(posts, busqueda, max_comments):
 def lambda_handler(event, context): 
 
     # Recogemos el nombre del usuario de instagram a buscar de event[user]
-    busqueda = event.get("search")
+    search = event.get("search")
 
     # Formato fecha = YYYY-MM-DD
     date_until_search = event.get("date_until_search")
@@ -213,7 +213,7 @@ def lambda_handler(event, context):
     max_comments = event.get("max_comments")
     
     #Comprobaciones de campos faltantes
-    if not busqueda:
+    if not search:
         return {"response": "No se proporciona busqueda a realizar"}
     if not date_until_search:
         return {"response": "No se proporciona fecha máxima"}
@@ -233,7 +233,7 @@ def lambda_handler(event, context):
         "onlyPostsNewerThan": date_until_search,
         "resultsLimit": 10,
         "resultsType": "posts",
-        "search": busqueda,
+        "search": search,
         "searchLimit": 10,
         "searchType": "hashtag"
 }
@@ -276,7 +276,7 @@ def lambda_handler(event, context):
         if len(datos) == 0:
             return {"response": "No se encontraron resultados asociados a la búsqueda"}
 
-        return extraer_posts(datos[2].get("latestPosts")[:max_posts], busqueda, max_comments)
+        return extraer_posts(datos[2].get("latestPosts")[:max_posts], search, max_comments)
     
     except Exception as e:
         return {"response": "Error" + str(e)}
