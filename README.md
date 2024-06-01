@@ -25,7 +25,8 @@ Es importante contar con las últimas versiones de Python y PIP para correr el p
 {
   "username": "<usuario a buscar>",
   "date_until_search": "<fecha máxima en la que se buscarán los posts>", 
-  "max_posts": <número máximo de posts a buscar>
+  "max_posts": <número máximo de posts a buscar>,
+  "max_comments": <número máximo de comentarios a buscar>
 }
 ```
 _La fecha máxima de búsqueda debe estar en formato: AAAA-MM_-DD_.
