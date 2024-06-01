@@ -16,7 +16,7 @@ Es importante contar con las últimas versiones de Python y PIP para correr el p
 ## Pasos de uso
 
 - Crear una función Lambda en AWS.
-- Crear una capa en la función Lambda con el archivo .zip de dependencias. *Importante*: Crear la capa con un Runtime de Python 3.12 y una arquitectura x86_64.
+- Crear una capa personalizada en la función Lambda con el archivo .zip de dependencias. *Importante*: Crear la capa con un Runtime de Python 3.12 y una arquitectura x86_64.
 - Agregar las variables de ambiente *APIFYKEY* y *MONGOURI* en el apartado de configuración con tu llave de Apify y tu link de conexión a la BD Mongo.
 - En configuración general de la función Lambda, cambiar el tiempo de Timeout a un valor mínimo de 10 minutos.
 - Pegar el código de la función a utilizar en la función Lambda.
