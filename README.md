@@ -1,5 +1,5 @@
 # Extracción de información en Posts de Instagram y Facebook
-Proyecto en Python, integrado con AWS Lambda, que extraerá información de los posts y comentarios de un perfil de Instagram y/o Facebook con los actores de Apify:
+Proyecto en Python, integrado con AWS Lambda, que extraerá información de los posts y comentarios de un perfil o resultados de una búsqueda abierta de Instagram y Facebook con los actores de Apify:
 - [Instagram Post Scraper](https://apify.com/apify/instagram-post-scraper/api/client/python)
 - [Facebook Post Scraper](https://apify.com/apify/facebook-posts-scraper)
 - [Facebook Comments Scraper](https://apify.com/apify/facebook-comments-scraper)
@@ -21,6 +21,8 @@ Es importante contar con las últimas versiones de Python y PIP para correr el p
 - En configuración general de la función Lambda, cambiar el tiempo de Timeout a un valor mínimo de 10 minutos.
 - Pegar el código de la función a utilizar en la función Lambda.
 - Enviar un evento con los parámetros de extracción para la función Lambda con el siguiente formato:
+
+### Búqueda por perfil
 ```
 {
   "username": "<usuario a buscar>",
@@ -28,6 +30,16 @@ Es importante contar con las últimas versiones de Python y PIP para correr el p
   "max_posts": <número máximo de posts a buscar>
 }
 ```
+
+### Búqueda abierta
+```
+{
+  "search": "<busqueda a realizar>",
+  "date_until_search": "<fecha máxima en la que se buscarán los posts>", 
+  "max_posts": <número máximo de posts a buscar>
+}
+```
+
 _La fecha máxima de búsqueda debe estar en formato: AAAA-MM_-DD_.
 
 - El resultado de la función se guardará en la base de datos Mongo.
