@@ -96,28 +96,29 @@ def extraccion_comentarios_ig(padre, urls, num_comentarios):
 
         # Fetch and print Actor results from the run's dataset (if there are any)
         for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
-            datos_e = extract_hashtags_mentions(item.get("text"))
-            # Convierte los datos en un objeto JSON
-            objeto_json = {
-                "type":"comentario de Facebook",
-                "socialNetwork": "facebook",
-                "content": item.get("text"),
-                "usernameSocialNetwork": padre[cont_p].get("pageName"),
-                "dateCreated": str(item.get("date")),
-                "dateQuery":str(datetime.now()),
-                "location": "null",
-                "usersMentioned": datos_e.get("mentions"),
-                "properties":{
-                    "postId":item.get("id"),
-                    "postURL":item.get("commentUrl"),
-                    "mediaURL":"No contiene",
-                    "likes":item.get("likesCount"),
-                    "comments":"No aplica"
-                },
-                "_parentEntryID":padre[cont_p].get("postId"),
-                "hashtags": datos_e.get('hashtags')
-            }
-            datos.append(objeto_json)
+            if not item.get("error"):
+                datos_e = extract_hashtags_mentions(item.get("text"))
+                # Convierte los datos en un objeto JSON
+                objeto_json = {
+                    "type":"comentario de Facebook",
+                    "socialNetwork": "facebook",
+                    "content": item.get("text"),
+                    "usernameSocialNetwork": padre[cont_p].get("pageName"),
+                    "dateCreated": str(item.get("date")),
+                    "dateQuery":str(datetime.now()),
+                    "location": "null",
+                    "usersMentioned": datos_e.get("mentions"),
+                    "properties":{
+                        "postId":item.get("id"),
+                        "postURL":item.get("commentUrl"),
+                        "mediaURL":"No contiene",
+                        "likes":item.get("likesCount"),
+                        "comments":"No aplica"
+                    },
+                    "_parentEntryID":padre[cont_p].get("postId"),
+                    "hashtags": datos_e.get('hashtags')
+                }
+                datos.append(objeto_json)
             it+=1
             
             #Se pasa al siguiente post cuando ya se extrajo el número de comentarios indicado para cada post
@@ -199,41 +200,42 @@ def lambda_handler(event, context):
 
         for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
 
-            # Extraemos las menciones y hashtags del caption
-            datos_e_e = extract_hashtags_mentions(item.get("text"))
+            if not item.get("error"):
+                # Extraemos las menciones y hashtags del caption
+                datos_e_e = extract_hashtags_mentions(item.get("text"))
 
-            #Comprobar que el post tiene imágenes o videos y guardarlas en la variable uri_value
-            media_data = item.get("media")
-            if media_data:
-                uri_value = [item["thumbnail"] for item in media_data]
-            else:
-                uri_value = "Sin contenido"
+                #Comprobar que el post tiene imágenes o videos y guardarlas en la variable uri_value
+                media_data = item.get("media")
+                if media_data:
+                    uri_value = [item["thumbnail"] for item in media_data]
+                else:
+                    uri_value = "Sin contenido"
 
-            # Convierte los datos en un objeto JSON
-            objeto_json = {
-                "type":"post de Facebook",
-                "socialNetwork": "facebook",
-                "content": item.get("text"),
-                "usernameSocialNetwork": username,
-                "dateCreated": str(item.get("time")),
-                "dateQuery":str(datetime.now()),
-                "usersMentioned": datos_e_e.get("mentions"),
-                "properties":{
-                    "postId":item.get("postId"),
-                    "postURL":item.get("url"),
-                    "mediaURL":uri_value,
-                    "comments":item.get("comments"),
-                    "reactions":item.get("likes"),
-                    "shares":item.get("shares"),
-                    "views":item.get("viewsCount"),
-                },
-                "_parentEntryID":item.get("user").get("id"),
-                "hashtags": datos_e_e.get("hashtags")
-            }
-
-            urls.append(str(item.get("url")))
-            datos.append(objeto_json)
-            items.append(item)
+                # Convierte los datos en un objeto JSON
+                objeto_json = {
+                    "type":"post de Facebook",
+                    "socialNetwork": "facebook",
+                    "content": item.get("text"),
+                    "usernameSocialNetwork": username,
+                    "dateCreated": str(item.get("time")),
+                    "dateQuery":str(datetime.now()),
+                    "usersMentioned": datos_e_e.get("mentions"),
+                    "properties":{
+                        "postId":item.get("postId"),
+                        "postURL":item.get("url"),
+                        "mediaURL":uri_value,
+                        "comments":item.get("comments"),
+                        "reactions":item.get("likes"),
+                        "shares":item.get("shares"),
+                        "views":item.get("viewsCount"),
+                    },
+                    "_parentEntryID":item.get("user").get("id"),
+                    "hashtags": datos_e_e.get("hashtags")
+                }
+                if item.get("comments") > 0:
+                    urls.append(str(item.get("url")))
+                datos.append(objeto_json)
+                items.append(item)
 
         #Extrae los comentarios de los posts
         extraccion_comentarios_ig(items,urls,2)
