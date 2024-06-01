@@ -235,7 +235,7 @@ def lambda_handler(event, context):
                     "_parentEntryID":item.get("user").get("id"),
                     "hashtags": datos_e_e.get("hashtags")
                 }
-                if item.get("comments") > 0:
+                if item.get("commentsCount") > 0:
                     urls.append(str(item.get("url")))
                     posts_con_comentarios.append(item)
 
