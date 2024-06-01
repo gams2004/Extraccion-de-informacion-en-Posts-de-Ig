@@ -119,7 +119,9 @@ def extraccion_comentarios_fb(padre, urls, num_comentarios):
                     "hashtags": datos_e.get('hashtags')
                 }
                 datos.append(objeto_json)
-            it+=1
+                it+=1
+            else:
+                it = num_comentarios
             
             #Se pasa al siguiente post cuando ya se extrajo el número de comentarios indicado para cada post
             if it % num_comentarios == 0:
