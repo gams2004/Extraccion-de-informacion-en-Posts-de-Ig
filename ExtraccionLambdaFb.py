@@ -70,7 +70,7 @@ def extract_hashtags_mentions(text):
     return result
  
 #Función que extrae los primeros 50 comentarios de un post dado
-def extraccion_comentarios_ig(padre, urls, num_comentarios):
+def extraccion_comentarios_fb(padre, urls, num_comentarios):
     run_input={
         "includeNestedComments": False,
         "resultsLimit": num_comentarios,
@@ -197,11 +197,11 @@ def lambda_handler(event, context):
         #Lista de posts a guardar
         datos = []
 
-        #Lista con todos los items extraidos
-        items = []
-
         #Lista de URLs
         urls = []
+
+        #Lista de posts con comentarios
+        posts_con_comentarios = []
 
         for item in clientApify.dataset(run["defaultDatasetId"]).iterate_items():
 
@@ -239,11 +239,12 @@ def lambda_handler(event, context):
                 }
                 if item.get("comments") > 0:
                     urls.append(str(item.get("url")))
+                    posts_con_comentarios.append(item)
+
                 datos.append(objeto_json)
-                items.append(item)
 
         #Extrae los comentarios de los posts
-        extraccion_comentarios_ig(items,urls,max_comments)
+        extraccion_comentarios_fb(posts_con_comentarios,urls,max_comments)
 
         #Revisa que se hayan podido extraer datos del perfil
         if len(datos) == 0:
