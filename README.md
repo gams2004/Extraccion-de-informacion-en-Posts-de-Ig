@@ -8,8 +8,8 @@ Además, realiza el guardado de los datos en una base de datos Mongo.
 
 Librerías utilizadas para el proyecto:
 
-- pymongo
-- apify 
+- Pymongo
+- Apify 
 
 Es importante contar con las últimas versiones de Python y PIP para correr el proyecto sin problemas.
 
