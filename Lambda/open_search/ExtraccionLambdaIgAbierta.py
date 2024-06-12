@@ -209,9 +209,6 @@ def lambda_handler(event, context):
     # Obtenemos el número máximo de posts a buscar
     max_posts = event.get("max_posts")
 
-    # Obtenemos el número máximo de comentarios a buscar
-    max_comments = event.get("max_comments")
-    
     #Comprobaciones de campos faltantes
     if not search:
         return {"response": "No se proporciona busqueda a realizar"}
@@ -219,8 +216,6 @@ def lambda_handler(event, context):
         return {"response": "No se proporciona fecha máxima"}
     if not max_posts:
         return {"response": "No se proporciona máximo de posts"}
-    if not max_comments:
-        return {"response": "No se proporciona máximo de comentarios"}
 
     #Comprueba si la fecha es posterior a la actual
     if es_fecha_despues_de_hoy(date_until_search):
@@ -276,7 +271,7 @@ def lambda_handler(event, context):
         if len(datos) == 0:
             return {"response": "No se encontraron resultados asociados a la búsqueda"}
 
-        return extraer_posts(datos[2].get("latestPosts")[:max_posts], search, max_comments)
+        return extraer_posts(datos[2].get("latestPosts")[:max_posts], search, 50)
     
     except Exception as e:
         return {"response": "Error" + str(e)}
