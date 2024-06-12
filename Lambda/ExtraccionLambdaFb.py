@@ -142,9 +142,6 @@ def lambda_handler(event, context):
 
     # Obtenemos el número máximo de posts a buscar
     max_posts = event.get("max_posts")
-
-    # Obtenemos el número máximo de posts a buscar
-    max_comments = event.get("max_comments")
     
     #Comprobaciones de campos faltantes
     if not username:
@@ -153,8 +150,6 @@ def lambda_handler(event, context):
         return {"response": "No se proporciona fecha máxima"}
     if not max_posts:
         return {"response": "No se proporciona máximo de posts"}
-    if not max_comments:
-        return {"response": "No se proporciona máximo de comentarios"}
     
     #Comprueba si la fecha es posterior a la actual
     if es_fecha_despues_de_hoy(date_until_search):
@@ -243,7 +238,7 @@ def lambda_handler(event, context):
                 items.append(item)
 
         #Extrae los comentarios de los posts
-        extraccion_comentarios_ig(items,urls,max_comments)
+        extraccion_comentarios_ig(items,urls,50)
 
         #Revisa que se hayan podido extraer datos del perfil
         if len(datos) == 0:
