@@ -28,17 +28,16 @@ Es importante contar con las últimas versiones de Python y PIP para correr el p
   "username": "<usuario a buscar>",
   "date_until_search": "<fecha máxima en la que se buscarán los posts>", 
   "max_posts": <número máximo de posts a buscar>,
-  "max_comments": <número máximo de comentarios a buscar>
 }
 ```
 
 ### Búqueda abierta Instagram
 ```
 {
-  "search": "<busqueda a realizar>",
+  "search_term": "<busqueda a realizar>",
   "date_until_search": "<fecha máxima en la que se buscarán los posts>", 
   "max_posts": <número máximo de posts a buscar>,
-  "max_comments": <número máximo de comentarios a buscar>
+  "search_type": "<tipo de busqueda a realizar>"
 }
 ```
 
@@ -48,7 +47,7 @@ Es importante contar con las últimas versiones de Python y PIP para correr el p
   "search": ["<lista>", "<de>", "<busquedas>", "<a>", "<realizar>"],
   "date_until_search": "<fecha máxima en la que se buscarán los posts>", 
   "max_posts": <número máximo de posts a buscar>,
-  "max_comments": <número máximo de comentarios a buscar>
+  "search_type": "<tipo de busqueda a realizar>"
 }
 ```
 

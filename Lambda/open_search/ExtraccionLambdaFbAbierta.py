@@ -137,7 +137,10 @@ def extraccion_comentarios_fb(padre, urls, num_comentarios):
 def lambda_handler(event, context): 
 
     # Recogemos el nombre del usuario de instagram a buscar de event[user]
-    search = event.get("search")
+    search = event.get("search_term")
+
+    # Recogemos el tipo de búsqueda de event[user]
+    type = event.get("search_type")
 
     # Formato fecha = YYYY-MM-DD
     date_until_search = event.get("date_until_search")
