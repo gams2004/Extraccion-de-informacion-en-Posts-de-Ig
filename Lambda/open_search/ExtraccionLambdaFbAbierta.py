@@ -161,7 +161,7 @@ def lambda_handler(event, context):
         return {"response": "Fecha incorrecta. La fecha debe ser anterior a la fecha actual"}
 
     run_input = {
-        "keywordList":search,
+        "keywordList":[search],
         "resultsLimit": max_posts
     }
 
