@@ -41,7 +41,8 @@ Es importante contar con las últimas versiones de Python y PIP para correr el p
 }
 ```
 
-_La fecha máxima de búsqueda debe estar en formato: AAAA-MM_-DD_.
+_La fecha máxima de búsqueda debe estar en formato: AAAA-MM-DD_.
+_search_type tiene como opciones: "hashtag", "place" o "user"_
 
 - El resultado de la función se guardará en la base de datos Mongo.
   
