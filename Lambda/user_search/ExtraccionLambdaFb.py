@@ -235,7 +235,7 @@ def lambda_handler(event, context):
                     "hashtags": datos_e_e.get("hashtags")
                 }
                 if item.get("comments") > 0:
-                    urls.append(str(item.get("url")))
+                    urls.append({"url": item.get("url")})
                     posts_con_comentarios.append(item)
 
                 datos.append(objeto_json)
