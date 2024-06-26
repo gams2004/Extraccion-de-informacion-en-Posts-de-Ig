@@ -224,7 +224,7 @@ def lambda_handler(event, context):
     search = event.get("search_term")
 
     # Recogemos el tipo de búsqueda de event[user]
-    type = event.get("search_type")
+    search_type = event.get("search_type")
 
     # Formato fecha = YYYY-MM-DD
     date_until_search = event.get("date_until_search")
@@ -235,7 +235,7 @@ def lambda_handler(event, context):
     #Comprobaciones de campos faltantes
     if not search:
         return {"response": "No se proporciona busqueda a realizar"}
-    if not type:
+    if not search_type:
         return {"response": "No se proporciona tipo de búsqueda a realizar"}
     if not date_until_search:
         return {"response": "No se proporciona fecha máxima"}
@@ -255,7 +255,7 @@ def lambda_handler(event, context):
         "resultsType": "posts",
         "search": search,
         "searchLimit": 10,
-        "searchType": type
+        "searchType": search_type
 }
 
     #Se prueba la conexión a la base de datos antes de ejecutar el actor
