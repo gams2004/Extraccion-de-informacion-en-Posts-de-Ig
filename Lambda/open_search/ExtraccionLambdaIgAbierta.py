@@ -221,7 +221,7 @@ def extraer_posts(posts, search, max_comments):
 def lambda_handler(event, context): 
 
     # Recogemos el nombre del usuario de instagram a buscar de event[user]
-    search = event.get("search_term")
+    search_term = event.get("search_term")
 
     # Recogemos el tipo de búsqueda de event[user]
     search_type = event.get("search_type")
@@ -233,7 +233,7 @@ def lambda_handler(event, context):
     max_posts = event.get("max_posts")
 
     #Comprobaciones de campos faltantes
-    if not search:
+    if not search_term:
         return {"response": "No se proporciona busqueda a realizar"}
     if not search_type:
         return {"response": "No se proporciona tipo de búsqueda a realizar"}
@@ -253,7 +253,7 @@ def lambda_handler(event, context):
         "onlyPostsNewerThan": date_until_search,
         "resultsLimit": 10,
         "resultsType": "posts",
-        "search": search,
+        "search": search_term,
         "searchLimit": 10,
         "searchType": search_type
 }
@@ -298,9 +298,9 @@ def lambda_handler(event, context):
 
         #Encontramos el resultado más parecido al término de búsqueda 
         terms = [item.get("name") for item in datos]
-        indice = similitud_j(terms, search)
+        indice = similitud_j(terms, search_term)
 
-        return extraer_posts(datos[indice].get("latestPosts")[:max_posts], search, 50)
+        return extraer_posts(datos[indice].get("latestPosts")[:max_posts], search_term, 50)
     
     except Exception as e:
         return {"response": "Error" + str(e)}
